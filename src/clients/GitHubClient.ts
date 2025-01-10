@@ -1,6 +1,6 @@
 import { Octokit } from "@octokit/rest";
 import * as dotenv from "dotenv";
-import { subDays } from "date-fns"; // Utility for date calculations
+import { subDays } from "date-fns";
 
 dotenv.config();
 
@@ -95,32 +95,32 @@ class GitHubClient {
   async getRecentActivityRepos(username: string, days: number = 3): Promise<string[]> {
     const cutoffDate = subDays(new Date(), days).toISOString();
     const recentRepos = new Set<string>();
-  
+
     let page = 1;
     const maxPages = 3; // Limit to 3 pages (adjust based on your requirements)
-  
+
     while (page <= maxPages) {
       const response = await this.octokit.request("GET /users/{username}/events", {
         username,
         per_page: 100,
         page,
       });
-  
+
       const events: any[] = response.data;
       if (events.length === 0) break; // Stop if no more events are returned
-  
+
       for (const event of events) {
         if (event.type !== "PushEvent") continue;
-  
+
         const eventDate = new Date(event.created_at);
         if (eventDate < new Date(cutoffDate)) continue;
-  
+
         recentRepos.add(event.repo.name);
       }
-  
+
       page++;
     }
-  
+
     return Array.from(recentRepos);
   }
 }
