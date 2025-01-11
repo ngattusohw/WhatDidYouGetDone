@@ -9,10 +9,8 @@ serve(async (req) => {
   }
 
   try {
-    // Force local URL for development
-    const supabaseUrl = 'http://127.0.0.1:54321';
     const supabase = createClient(
-      supabaseUrl,
+      Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
       {
         auth: {
