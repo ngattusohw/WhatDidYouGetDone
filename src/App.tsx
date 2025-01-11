@@ -37,7 +37,7 @@ function App() {
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="integrations" element={<Integrations />} />
             {/* <Route path="teams" element={<Teams />} /> */}
-            {/* <Route path="settings" element={<Settings />} /> */}
+            <Route path="settings" element={<Settings />} />
           </Route>
         </Routes>
         <Toaster />

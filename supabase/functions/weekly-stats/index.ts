@@ -20,10 +20,10 @@ serve(async (req) => {
       }
     );
 
+    //TODO: Determine how to get the weekStart from the request based on front end comp
     const { weekStart } = await req.json();
 
     const authHeader = req.headers.get('Authorization')?.split(' ')[1];
-    console.log('Auth Token:', authHeader ? 'Present' : 'Missing');
 
     if (!authHeader) {
       throw new Error('No auth token provided');
