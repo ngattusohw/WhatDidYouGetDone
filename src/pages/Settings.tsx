@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { Github } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,47 +8,43 @@ import { useGitHubIntegration } from '@/hooks/useGitHubIntegration';
 import { supabase } from '@/lib/supabase';
 
 export default function Settings() {
-  const [searchParams] = useSearchParams();
+  const location = useLocation();
   const { toast } = useToast();
   const { mutate: saveGitHubToken, isPending } = useGitHubIntegration();
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    // Check if we have a code from GitHub OAuth
-    const code = searchParams.get('code');
-    if (code) {
-      saveGitHubToken(
-        { oAuthCode: code },
-        {
-          onSuccess: () => {
-            setIsConnected(true);
-            toast({
-              title: 'Success',
-              description: 'GitHub integration connected successfully',
-            });
-          },
-          onError: (error) => {
-            toast({
-              title: 'Error',
-              description: error.message,
-              variant: 'destructive',
-            });
-          },
-        }
-      );
+    const searchParams = new URLSearchParams(location.search);
+    const integration = searchParams.get('integration');
+    const status = searchParams.get('status');
+    const providerToken = searchParams.get('provider_token');
+
+    if (integration === 'github' && status) {
+      if (status === 'success') {
+        setIsConnected(true);
+        toast({
+          title: 'Success',
+          description: 'GitHub integration connected successfully',
+        });
+      } else if (status === 'error') {
+        toast({
+          title: 'Error',
+          description: 'Failed to connect GitHub integration',
+          variant: 'destructive',
+        });
+      }
     }
-  }, [searchParams, saveGitHubToken, toast]);
+  }, [location.search, toast]);
 
   const handleGitHubAuth = async () => {
     try {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'github',
         options: {
-          redirectTo: `${window.location.origin}/settings`,
+          redirectTo: `${window.location.origin}/auth/github/callback`,
           scopes: 'repo read:user',
         },
       });
-
       if (error) throw error;
     } catch (error) {
       console.error('Error connecting to GitHub:', error);

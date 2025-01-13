@@ -11,6 +11,7 @@ import Register from '@/pages/Register';
 import Integrations from '@/pages/Integrations';
 // import Teams from '@/pages/Teams';
 import Settings from '@/pages/Settings';
+import GitHubCallback from './pages/GithubCallback';
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -38,6 +39,7 @@ function App() {
             <Route path="integrations" element={<Integrations />} />
             {/* <Route path="teams" element={<Teams />} /> */}
             <Route path="settings" element={<Settings />} />
+            <Route path="/auth/github/callback" element={<GitHubCallback />} />
           </Route>
         </Routes>
         <Toaster />
