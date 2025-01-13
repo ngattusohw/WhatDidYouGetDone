@@ -11,6 +11,7 @@ export default function GitHubCallback() {
 
   useEffect(() => {
     const hashParams = new URLSearchParams(location.hash.substring(1));
+    console.log('Window', window.location);
     console.log('hashParams', hashParams);
     console.log('location.hash', location.hash);
     console.log(location);
@@ -40,7 +41,7 @@ export default function GitHubCallback() {
     } else {
       navigate('/settings?integration=github&status=provider_token_not_found', { replace: true });
     }
-  }, [location.hash, saveGitHubToken, navigate]);
+  }, [location.hash, navigate]);
 
   return <Loader2 className="animate-spin" />;
 }
