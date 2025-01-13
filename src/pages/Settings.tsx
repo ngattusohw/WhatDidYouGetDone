@@ -41,11 +41,16 @@ export default function Settings() {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'github',
         options: {
+          skipBrowserRedirect: true,
           redirectTo: `${window.location.origin}/auth/github/callback`,
           scopes: 'repo read:user',
         },
       });
       if (error) throw error;
+
+      if (data?.url) {
+        window.location.href = data.url;
+      }
     } catch (error) {
       console.error('Error connecting to GitHub:', error);
       toast({
