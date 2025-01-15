@@ -38,7 +38,7 @@ export default function Settings() {
 
   const handleGitHubAuth = async () => {
     try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const data = await supabase.auth.signInWithOAuth({
         provider: 'github',
         options: {
           skipBrowserRedirect: true,
@@ -46,10 +46,12 @@ export default function Settings() {
           scopes: 'repo read:user',
         },
       });
-      if (error) throw error;
+      // if (error) throw error;
 
-      if (data?.url) {
-        window.location.href = data.url;
+      if (data) {
+        console.log('Doing this weird thing ');
+        console.log(data);
+        window.location.href = data?.data?.url ?? '';
       }
     } catch (error) {
       console.error('Error connecting to GitHub:', error);

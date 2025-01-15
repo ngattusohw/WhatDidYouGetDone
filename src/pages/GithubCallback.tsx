@@ -11,28 +11,37 @@ export default function GitHubCallback() {
 
   useEffect(() => {
     // Need to wait for the next tick to ensure hash is available
+
+    const hashParam1 = new URLSearchParams(window.location.hash.substring(1));
+    const providerToken1 = hashParam1.get('provider_token!!!!');
+
+    console.log(providerToken1);
+
     setTimeout(() => {
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
       const providerToken = hashParams.get('provider_token');
 
+      console.log('providerToken', providerToken);
+      console.log(location);
+
       if (providerToken) {
-        saveGitHubToken(
-          { oAuthCode: providerToken },
-          {
-            onSuccess: () => {
-              navigate('/settings?integration=github&status=success', { replace: true });
-            },
-            onError: (error) => {
-              console.error('Error saving GitHub token:', error);
-              navigate('/settings?integration=github&status=error', { replace: true });
-            },
-          }
-        );
+        // saveGitHubToken(
+        //   { oAuthCode: providerToken },
+        //   {
+        //     onSuccess: () => {
+        //       navigate('/settings?integration=github&status=success', { replace: true });
+        //     },
+        //     onError: (error) => {
+        //       console.error('Error saving GitHub token:', error);
+        //       navigate('/settings?integration=github&status=error', { replace: true });
+        //     },
+        //   }
+        // );
       } else {
         console.error('No provider token found in URL');
         navigate('/settings?integration=github&status=error', { replace: true });
       }
-    }, 100);
+    }, 3000);
   }, []);
 
   return (
