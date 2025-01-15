@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
-import { saveGitHubToken } from '@/lib/api/saveIntegrations/githubIntegration';
+import { saveGitHubToken } from '@/lib/api/saveIntegrations/github';
 import { useToast } from '@/hooks/use-toast';
 
 export const useGitHubIntegration = () => {
