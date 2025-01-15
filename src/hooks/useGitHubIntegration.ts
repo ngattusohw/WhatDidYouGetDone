@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
-import { saveGitHubIntegration } from '@/lib/api/saveIntegrations/githubIntegration';
+import { saveGitHubToken } from '@/lib/api/saveIntegrations/githubIntegration';
 import { useToast } from '@/hooks/use-toast';
 
 export const useGitHubIntegration = () => {
@@ -12,7 +12,7 @@ export const useGitHubIntegration = () => {
       oAuthCode: string;
     }) => {
       try {
-        const response = await saveGitHubIntegration(oAuthCode);
+        const response = await saveGitHubToken(oAuthCode);
         return response.data;
       } catch (error: any) {
         throw new Error(error?.message);

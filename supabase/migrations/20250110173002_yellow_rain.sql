@@ -209,7 +209,7 @@ INSERT INTO integrations (type, name, description, is_premium) VALUES
 CREATE OR REPLACE FUNCTION handle_new_user()
 RETURNS trigger AS $$
 BEGIN
-  INSERT INTO users (id, email, full_name)
+  INSERT INTO public.users (id, email, full_name)
   VALUES (new.id, new.email, new.raw_user_meta_data->>'full_name');
   RETURN new;
 END;

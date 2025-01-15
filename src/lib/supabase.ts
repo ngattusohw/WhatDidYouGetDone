@@ -13,10 +13,14 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 
 // Helper function for Edge Functions URLs
 
+console.log("This is my env", env)
 const baseUrl =
   env === 'development'
     ? 'http://127.0.0.1:54321'
     : supabaseUrl;
+
+    console.log("This is my baseUrl", baseUrl)
+
 export const getFunctionsUrl = (functionPath: string) => {
   return `${baseUrl}/functions/v1/${functionPath}`;
 };

@@ -19,41 +19,24 @@ serve(async (req) => {
       }
     );
 
-    const { code } = await req.json();
-    const authHeader = req.headers.get('Authorization')?.split(' ')[1];
+    // Parse request body and validate token
+    console.log("This is my req", req)
+    const { token } = await req.json();
+    if (!token) {
+      throw new Error('No token provided in request body');
+    }
 
+    const authHeader = req.headers.get('Authorization')?.split(' ')[1];
     if (!authHeader) {
       throw new Error('No auth token provided');
     }
 
-    // Get user from JWT
     const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader);
-
     if (authError || !user) {
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
-    }
-
-    // Exchange the code for GitHub access token
-    const tokenResponse = await fetch('https://github.com/login/oauth/access_token', {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        client_id: Deno.env.get('GITHUB_CLIENT_ID'),
-        client_secret: Deno.env.get('GITHUB_CLIENT_SECRET'),
-        code,
-      }),
-    });
-
-    const tokenData = await tokenResponse.json();
-
-    if (tokenData.error) {
-      throw new Error(`GitHub OAuth error: ${tokenData.error_description}`);
     }
 
     // Get GitHub integration ID
@@ -73,11 +56,7 @@ serve(async (req) => {
       .upsert({
         user_id: user.id,
         integration_id: integration.id,
-        access_token: tokenData.access_token,
-        refresh_token: tokenData.refresh_token,
-        expires_at: tokenData.expires_in
-          ? new Date(Date.now() + tokenData.expires_in * 1000).toISOString()
-          : null,
+        access_token: token,
       });
 
     if (tokenError) {
@@ -103,6 +82,7 @@ serve(async (req) => {
     );
 
   } catch (error) {
+    console.error('Error:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
