@@ -3,7 +3,7 @@ import { getUserIntegrations } from '@/lib/api/integrations';
 
 export function useUserIntegrations() {
   return useQuery({
-    queryKey: ['integrations'],
+    queryKey: ['user-integrations'],
     queryFn: () => getUserIntegrations(),
   });
 }
