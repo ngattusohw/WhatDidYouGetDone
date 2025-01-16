@@ -11,14 +11,38 @@ import { useState } from 'react';
 export default function Settings() {
   const { data: integrations, isLoading } = useUserIntegrations();
   const { toast } = useToast();
-  const [token, setToken] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [newToken, setNewToken] = useState('');
 
   const activeIntegrations = integrations?.filter((i) => i.is_active) ?? [];
   const inactiveIntegrations = integrations?.filter((i) => !i.is_active) ?? [];
 
+  const handleUpdateToken = (integration: Integration) => {
+    if (!newToken.trim()) {
+      toast({
+        title: 'Error',
+        description: 'Please enter a valid token',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // TODO: Call your update token mutation here
+    console.log('Updating token for', integration.id, 'with', newToken);
+
+    // Reset states
+    setEditingId(null);
+    setNewToken('');
+  };
+
   if (isLoading) {
     return <IntegrationsLoadingSkeleton />;
   }
+
+  const handleDisconnect = (id: string): void => {
+    activeIntegrations.filter((i) => i.id !== id);
+    throw new Error('Function not implemented.');
+  };
 
   return (
     <div className="space-y-6">
@@ -47,15 +71,45 @@ export default function Settings() {
                 <CardDescription>{integration.description}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Input
-                  type="password"
-                  placeholder={`Enter your ${integration.name} token`}
-                  value={integration.access_token || ''}
-                  disabled
-                />
-                <div className="flex justify-end">
-                  <Button variant="destructive">Disconnect</Button>
-                </div>
+                {editingId === integration.id ? (
+                  <>
+                    <Input
+                      type="password"
+                      placeholder={`Enter new ${integration.name} token`}
+                      value={newToken}
+                      onChange={(e) => setNewToken(e.target.value)}
+                      autoFocus
+                    />
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setEditingId(null);
+                          setNewToken('');
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                      <Button onClick={() => handleUpdateToken(integration)}>Save Token</Button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <Input type="password" value={integration.access_token || ''} disabled />
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setEditingId(integration.id);
+                          setNewToken('');
+                        }}
+                      >
+                        Update Token
+                      </Button>
+                      <Button variant="destructive">Disconnect</Button>
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
           ))}
