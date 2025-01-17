@@ -112,7 +112,7 @@ export class GitHubClient {
 
         const eventDate = new Date(event.created_at);
         if (eventDate < new Date(cutoffDate)) continue;
-
+        console.log('Event', event);
         recentRepos.add(event.repo.name);
       }
 
