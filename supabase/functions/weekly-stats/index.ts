@@ -51,8 +51,8 @@ serve(async (req) => {
       {
         auth: {
           autoRefreshToken: false,
-          persistSession: false
-        }
+          persistSession: false,
+        },
       }
     );
 
@@ -65,15 +65,13 @@ serve(async (req) => {
       throw new Error('No auth token provided');
     }
 
-    try {
-      // Decode the JWT to get the user ID
-      const decoded = jose.decodeJwt(authHeader);
-      const userId = decoded.sub;
+    // Decode the JWT to get the user ID
+    const decoded = jose.decodeJwt(authHeader);
+    const userId = decoded.sub;
 
-      if (!userId) {
-        throw new Error('Invalid token: no user ID');
-      }
-
+    if (!userId) {
+      throw new Error('Invalid token: no user ID');
+    }
 
     // // Fetch GitHub data using the token
     // const githubData = await fetchGitHubStats(tokenData.access_token, weekStart);
@@ -94,23 +92,13 @@ serve(async (req) => {
     //   throw statsError;
     // }
 
-
-    } catch (jwtError) {
-      console.error('JWT Error:', jwtError);
-      return new Response(
-        JSON.stringify({ error: 'Invalid token', details: jwtError.message }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-
     // Get user's GitHub token
     const { data: tokenData, error: tokenError } = await supabase
-    .from('integration_tokens')
-    .select('access_token')
-    .eq('user_id', user.id)
-    .eq('integration_id', 'github')
-    .single();
+      .from('integration_tokens')
+      .select('access_token')
+      .eq('user_id', userId)
+      .eq('integration_id', 'github')
+      .single();
 
     // For testing, log the mock data
     const githubData = await fetchGitHubStats('mock-token', weekStart);
@@ -127,16 +115,15 @@ serve(async (req) => {
         stats: githubData,
         summary: await generateSummary(githubData),
         week_start: weekStart,
-        user_id: userId
+        user_id: userId,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
-
   } catch (error) {
     console.error('Function Error:', error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
   }
 });
