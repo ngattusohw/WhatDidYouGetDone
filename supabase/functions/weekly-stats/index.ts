@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.7';
+import { GitHubClient } from '../_lib/GitHubClient.ts';
 import { corsHeaders } from '../_shared/cors.ts';
 import * as jose from 'https://deno.land/x/jose@v4.15.4/index.ts';
 
@@ -118,12 +119,19 @@ serve(async (req) => {
     const token = tokenData.access_token;
     console.log('This is my token', token);
 
+    const githubClient = new GitHubClient(tokenData.access_token);
+
+    const recentRepos = await githubClient.getRecentActivityRepos('ngattusohw', 3);
+
+    console.log('Recent repos:', recentRepos);
+
     return new Response(
       JSON.stringify({
         stats: githubData,
         summary: await generateSummary(githubData),
         week_start: weekStart,
         user_id: userId,
+        recent_repos: recentRepos,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

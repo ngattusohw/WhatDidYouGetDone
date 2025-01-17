@@ -1,16 +1,12 @@
-import { Octokit } from "@octokit/rest";
-import * as dotenv from "dotenv";
-import { subDays } from "date-fns";
+import { Octokit } from '@octokit/rest';
+import { subDays } from 'date-fns';
 
-dotenv.config();
-
-class GitHubClient {
+export class GitHubClient {
   private octokit: Octokit;
 
-  constructor() {
-    const token = process.env.GITHUB_API_TOKEN;
+  constructor(token: string) {
     if (!token) {
-      throw new Error("GitHub API token is not set in the .env file.");
+      throw new Error('GitHub API token is required');
     }
 
     this.octokit = new Octokit({ auth: token });
@@ -23,8 +19,8 @@ class GitHubClient {
     while (true) {
       const response = includeAll
         ? await this.octokit.repos.listForAuthenticatedUser({
-            affiliation: "owner,collaborator,organization_member",
-            sort: "updated",
+            affiliation: 'owner,collaborator,organization_member',
+            sort: 'updated',
             per_page: 100,
             page,
           })
@@ -43,7 +39,7 @@ class GitHubClient {
   }
 
   async listRepositoryCommits(repoFullName: string, since?: string): Promise<any[]> {
-    const [owner, repo] = repoFullName.split("/");
+    const [owner, repo] = repoFullName.split('/');
     const response = await this.octokit.repos.listCommits({
       owner,
       repo,
@@ -55,24 +51,26 @@ class GitHubClient {
 
   async getCommitDiff(repoFullName: string, commitSha: string): Promise<any> {
     try {
-      const [owner, repo] = repoFullName.split("/");
-      const response = await this.octokit.request("GET /repos/{owner}/{repo}/commits/{ref}", {
+      const [owner, repo] = repoFullName.split('/');
+      const response = await this.octokit.request('GET /repos/{owner}/{repo}/commits/{ref}', {
         owner,
         repo,
         ref: commitSha,
         headers: {
-          Accept: "application/vnd.github.diff",
+          Accept: 'application/vnd.github.diff',
         },
       });
 
       return response.data;
     } catch (error) {
-      throw new Error(`Failed to get commit diff: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(
+        `Failed to get commit diff: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 
   async getPullRequestsForCommit(repoFullName: string, commitSha: string): Promise<any[]> {
-    const [owner, repo] = repoFullName.split("/");
+    const [owner, repo] = repoFullName.split('/');
     const response = await this.octokit.repos.listPullRequestsAssociatedWithCommit({
       owner,
       repo,
@@ -82,7 +80,7 @@ class GitHubClient {
   }
 
   async compareCommits(repoFullName: string, base: string, head: string): Promise<any> {
-    const [owner, repo] = repoFullName.split("/");
+    const [owner, repo] = repoFullName.split('/');
     const response = await this.octokit.repos.compareCommits({
       owner,
       repo,
@@ -100,7 +98,7 @@ class GitHubClient {
     const maxPages = 3; // Limit to 3 pages (adjust based on your requirements)
 
     while (page <= maxPages) {
-      const response = await this.octokit.request("GET /users/{username}/events", {
+      const response = await this.octokit.request('GET /users/{username}/events', {
         username,
         per_page: 100,
         page,
@@ -110,7 +108,7 @@ class GitHubClient {
       if (events.length === 0) break; // Stop if no more events are returned
 
       for (const event of events) {
-        if (event.type !== "PushEvent") continue;
+        if (event.type !== 'PushEvent') continue;
 
         const eventDate = new Date(event.created_at);
         if (eventDate < new Date(cutoffDate)) continue;
@@ -124,6 +122,3 @@ class GitHubClient {
     return Array.from(recentRepos);
   }
 }
-
-
-export default GitHubClient;
