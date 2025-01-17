@@ -3,6 +3,42 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.7';
 import { corsHeaders } from '../_shared/cors.ts';
 import * as jose from 'https://deno.land/x/jose@v4.15.4/index.ts';
 
+async function fetchGitHubStats(token: string, weekStart: string) {
+  // Implement GitHub API calls here
+  // This is a placeholder that returns mock data
+  return {
+    total_commits: 23,
+    pull_requests: 5,
+    merged_prs: 3,
+    daily_commits: [
+      { date: '2024-02-19', commits: 4 },
+      { date: '2024-02-20', commits: 6 },
+      { date: '2024-02-21', commits: 3 },
+      { date: '2024-02-22', commits: 5 },
+      { date: '2024-02-23', commits: 5 },
+    ],
+    repos: [
+      {
+        name: 'project-a',
+        description: 'Main project repository',
+        commits: 12,
+        pull_requests: 3,
+      },
+      {
+        name: 'project-b',
+        description: 'Secondary project',
+        commits: 11,
+        pull_requests: 2,
+      },
+    ],
+  };
+}
+
+async function generateSummary(stats: any) {
+  // In a real implementation, this would use an LLM to generate a summary
+  return `You made ${stats.total_commits} commits across ${stats.repos.length} repositories this week. Notable activity includes ${stats.pull_requests} pull requests, with ${stats.merged_prs} successfully merged.`;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -39,22 +75,6 @@ serve(async (req) => {
       }
 
 
-    //      // Get user's GitHub token
-    // const { data: tokenData, error: tokenError } = await supabase
-    // .from('integration_tokens')
-    // .select('access_token')
-    // .eq('user_id', user.id)
-    // .eq('integration_id', 'github')
-    // .single();
-      // For testing, log the mock data
-      const githubData = await fetchGitHubStats('mock-token', weekStart);
-
-    //   if (tokenError || !tokenData) {
-    //     JSON.stringify({ error: 'GitHub integration not found' }),
-    //     { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    //   );
-    // }
-
     // // Fetch GitHub data using the token
     // const githubData = await fetchGitHubStats(tokenData.access_token, weekStart);
 
@@ -75,16 +95,6 @@ serve(async (req) => {
     // }
 
 
-      return new Response(
-        JSON.stringify({
-          stats: githubData,
-          summary: await generateSummary(githubData),
-          week_start: weekStart,
-          user_id: userId
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-
     } catch (jwtError) {
       console.error('JWT Error:', jwtError);
       return new Response(
@@ -92,6 +102,35 @@ serve(async (req) => {
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+
+    // Get user's GitHub token
+    const { data: tokenData, error: tokenError } = await supabase
+    .from('integration_tokens')
+    .select('access_token')
+    .eq('user_id', user.id)
+    .eq('integration_id', 'github')
+    .single();
+
+    // For testing, log the mock data
+    const githubData = await fetchGitHubStats('mock-token', weekStart);
+
+    if (tokenError || !tokenData) {
+      throw new Error('GitHub integration not found');
+    }
+
+    const token = tokenData.access_token;
+    console.log('This is my token', token);
+
+    return new Response(
+      JSON.stringify({
+        stats: githubData,
+        summary: await generateSummary(githubData),
+        week_start: weekStart,
+        user_id: userId
+      }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
 
   } catch (error) {
     console.error('Function Error:', error);
@@ -101,39 +140,3 @@ serve(async (req) => {
     );
   }
 });
-
-async function fetchGitHubStats(token: string, weekStart: string) {
-  // Implement GitHub API calls here
-  // This is a placeholder that returns mock data
-  return {
-    total_commits: 23,
-    pull_requests: 5,
-    merged_prs: 3,
-    daily_commits: [
-      { date: '2024-02-19', commits: 4 },
-      { date: '2024-02-20', commits: 6 },
-      { date: '2024-02-21', commits: 3 },
-      { date: '2024-02-22', commits: 5 },
-      { date: '2024-02-23', commits: 5 },
-    ],
-    repos: [
-      {
-        name: 'project-a',
-        description: 'Main project repository',
-        commits: 12,
-        pull_requests: 3,
-      },
-      {
-        name: 'project-b',
-        description: 'Secondary project',
-        commits: 11,
-        pull_requests: 2,
-      },
-    ],
-  };
-}
-
-async function generateSummary(stats: any) {
-  // In a real implementation, this would use an LLM to generate a summary
-  return `You made ${stats.total_commits} commits across ${stats.repos.length} repositories this week. Notable activity includes ${stats.pull_requests} pull requests, with ${stats.merged_prs} successfully merged.`;
-}
