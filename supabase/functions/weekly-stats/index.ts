@@ -73,8 +73,24 @@ serve(async (req) => {
       throw new Error('Invalid token: no user ID');
     }
 
-    // // Fetch GitHub data using the token
-    // const githubData = await fetchGitHubStats(tokenData.access_token, weekStart);
+    // First get the GitHub integration ID
+    const { data: integration, error: integrationError } = await supabase
+      .from('integrations')
+      .select('id')
+      .eq('type', 'github')
+      .single();
+
+    if (integrationError || !integration) {
+      throw new Error('GitHub integration not found');
+    }
+
+    // Then get the token using the correct integration ID
+    const { data: tokenData, error: tokenError } = await supabase
+      .from('integration_tokens')
+      .select('access_token')
+      .eq('user_id', userId)
+      .eq('integration_id', integration.id)
+      .single();
 
     // // Store the processed data
     // const { data: stats, error: statsError } = await supabase
@@ -91,14 +107,6 @@ serve(async (req) => {
     // if (statsError) {
     //   throw statsError;
     // }
-
-    // Get user's GitHub token
-    const { data: tokenData, error: tokenError } = await supabase
-      .from('integration_tokens')
-      .select('access_token')
-      .eq('user_id', userId)
-      .eq('integration_id', 'github')
-      .single();
 
     // For testing, log the mock data
     const githubData = await fetchGitHubStats('mock-token', weekStart);
