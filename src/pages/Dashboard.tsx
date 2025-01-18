@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -21,8 +21,12 @@ export default function Dashboard() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const { data: stats, isLoading, error } = useWeeklyStats(selectedDate);
 
+  useEffect(() => {
+    console.log('Stats:', stats);
+  }, [stats]);
+
   const navigateWeek = (direction: 'prev' | 'next') => {
-    setSelectedDate(current => 
+    setSelectedDate((current) =>
       direction === 'prev' ? subWeeks(current, 1) : addWeeks(current, 1)
     );
   };
@@ -46,19 +50,17 @@ export default function Dashboard() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => navigateWeek('prev')}
-          >
+          <Button variant="outline" size="icon" onClick={() => navigateWeek('prev')}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <Button
             variant="outline"
             size="icon"
             onClick={() => navigateWeek('next')}
-            disabled={format(startOfWeek(selectedDate, { weekStartsOn: 1 }), 'yyyy-MM-dd') ===
-              format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd')}
+            disabled={
+              format(startOfWeek(selectedDate, { weekStartsOn: 1 }), 'yyyy-MM-dd') ===
+              format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd')
+            }
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
@@ -72,9 +74,7 @@ export default function Dashboard() {
             <GitCommit className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {stats?.stats.total_commits || 0}
-            </div>
+            <div className="text-2xl font-bold">{stats?.stats.total_commits || 0}</div>
           </CardContent>
         </Card>
         <Card>
@@ -83,9 +83,7 @@ export default function Dashboard() {
             <GitPullRequest className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {stats?.stats.pull_requests || 0}
-            </div>
+            <div className="text-2xl font-bold">{stats?.stats.pull_requests || 0}</div>
           </CardContent>
         </Card>
         <Card>
@@ -94,9 +92,7 @@ export default function Dashboard() {
             <GitMerge className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {stats?.stats.merged_prs || 0}
-            </div>
+            <div className="text-2xl font-bold">{stats?.stats.merged_prs || 0}</div>
           </CardContent>
         </Card>
       </div>
@@ -148,28 +144,19 @@ export default function Dashboard() {
             <ScrollArea className="h-[300px]">
               <div className="space-y-4">
                 {(stats?.stats.repos || []).map((repo) => (
-                  <div
-                    key={repo.name}
-                    className="flex items-center justify-between border-b pb-4"
-                  >
+                  <div key={repo.name} className="flex items-center justify-between border-b pb-4">
                     <div>
                       <p className="font-medium">{repo.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {repo.description}
-                      </p>
+                      <p className="text-sm text-muted-foreground">{repo.description}</p>
                     </div>
                     <div className="flex items-center gap-4">
                       <div className="text-right">
                         <p className="text-sm font-medium">Commits</p>
-                        <p className="text-sm text-muted-foreground">
-                          {repo.commits}
-                        </p>
+                        <p className="text-sm text-muted-foreground">{repo.commits}</p>
                       </div>
                       <div className="text-right">
                         <p className="text-sm font-medium">PRs</p>
-                        <p className="text-sm text-muted-foreground">
-                          {repo.pull_requests}
-                        </p>
+                        <p className="text-sm text-muted-foreground">{repo.pull_requests}</p>
                       </div>
                     </div>
                   </div>

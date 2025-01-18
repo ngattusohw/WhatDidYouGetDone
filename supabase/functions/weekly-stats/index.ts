@@ -121,7 +121,7 @@ serve(async (req) => {
 
     const githubClient = new GitHubClient(tokenData.access_token);
 
-    const recentRepos = await githubClient.getRecentActivityRepos('ngattusohw', 3);
+    const recentRepos = await githubClient.getActivitySummary('ngattusohw', 3);
 
     console.log('Recent repos:', recentRepos);
 
