@@ -45,7 +45,7 @@ interface OrganizationActivity {
   statistics: Statistics;
 }
 
-interface GitHubActivity {
+export interface GitHubActivity {
   timeWindow: TimeWindow;
   repositories: Record<string, RepositoryActivity>;
   organizations: Record<string, OrganizationActivity>;

@@ -1,15 +1,11 @@
-import { HfInference } from "@huggingface/inference";
-import * as dotenv from "dotenv";
+import { HfInference } from '@huggingface/inference';
 
-dotenv.config();
-
-class HuggingFaceClient {
+export class HuggingFaceClient {
   private client: HfInference;
 
-  constructor() {
-    const token = process.env.HUGGINGFACE_API_TOKEN;
+  constructor(token: string) {
     if (!token) {
-      throw new Error("Hugging Face API token is missing. Set it in the .env file.");
+      throw new Error('Hugging Face API token is missing. Set it in the .env file.');
     }
     this.client = new HfInference(token);
   }
@@ -27,7 +23,7 @@ class HuggingFaceClient {
       });
       return response;
     } catch (error) {
-      console.error("Error in chatCompletion:", error);
+      console.error('Error in chatCompletion:', error);
       throw new Error(`Failed to fetch chat completion: ${error}`);
     }
   }

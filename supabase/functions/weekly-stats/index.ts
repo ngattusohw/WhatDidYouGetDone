@@ -1,43 +1,94 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.7';
 import { GitHubClient } from '../_lib/GitHubClient.ts';
+import { HuggingFaceClient } from '../_lib/HuggingFaceClient.ts';
 import { corsHeaders } from '../_shared/cors.ts';
 import * as jose from 'https://deno.land/x/jose@v4.15.4/index.ts';
+import { GitHubActivity } from '../_lib/GitHubClient.ts';
 
-async function fetchGitHubStats(token: string, weekStart: string) {
-  // Implement GitHub API calls here
-  // This is a placeholder that returns mock data
-  return {
-    total_commits: 23,
-    pull_requests: 5,
-    merged_prs: 3,
-    daily_commits: [
-      { date: '2024-02-19', commits: 4 },
-      { date: '2024-02-20', commits: 6 },
-      { date: '2024-02-21', commits: 3 },
-      { date: '2024-02-22', commits: 5 },
-      { date: '2024-02-23', commits: 5 },
-    ],
-    repos: [
-      {
-        name: 'project-a',
-        description: 'Main project repository',
-        commits: 12,
-        pull_requests: 3,
-      },
-      {
-        name: 'project-b',
-        description: 'Secondary project',
-        commits: 11,
-        pull_requests: 2,
-      },
-    ],
-  };
-}
+async function generateSummary(stats: GitHubActivity) {
+  let huggingFaceToken = Deno.env.get('HUGGING_FACE_API_TOKEN') ?? '';
+  console.log('This is my hugging face token', huggingFaceToken);
+  const huggingFaceClient = new HuggingFaceClient(huggingFaceToken);
 
-async function generateSummary(stats: any) {
-  // In a real implementation, this would use an LLM to generate a summary
-  return `You made ${stats.total_commits} commits across ${stats.repos.length} repositories this week. Notable activity includes ${stats.pull_requests} pull requests, with ${stats.merged_prs} successfully merged.`;
+  // Create repository-specific summaries
+  const repoSummaries = Object.entries(stats.repositories)
+    .map(([repoName, repoData]) => {
+      const commitsByDay = Object.entries(repoData.statistics.dailyCommits)
+        .map(([date, dayData]) => ({
+          date,
+          commits: dayData.commits.map((c) => c.message).join('\n'),
+        }))
+        .filter((day) => day.commits.length > 0);
+
+      return `
+Repository: ${repoName}
+Total Commits: ${repoData.statistics.totalCommits}
+Average Commits per Day: ${repoData.statistics.averageCommitsPerDay.toFixed(1)}
+Most Active Day: ${repoData.statistics.mostActiveDay.date} (${
+        repoData.statistics.mostActiveDay.commits
+      } commits)
+
+Commit Activity by Day:
+${commitsByDay
+  .map(
+    (day) => `
+Date: ${day.date}
+Commits:
+${day.commits}
+`
+  )
+  .join('\n')}
+`;
+    })
+    .join('\n---\n');
+
+  const prompt = `
+You are a technical product manager creating a weekly summary of development work. Your goal is to create two summaries:
+
+1. A high-level executive summary that non-technical stakeholders can understand
+2. Brief summaries for each repository's activity
+
+Here's the GitHub activity data for the past week:
+
+${repoSummaries}
+
+Please provide your summary in the following format:
+
+EXECUTIVE SUMMARY:
+[Write a 2-3 sentence overview of all work done across all repositories. Focus on features, improvements, and business impact rather than technical details. Make it accessible to non-technical readers.]
+
+REPOSITORY SUMMARIES:
+[For each repository, provide a 1-2 sentence summary of the main work done. Group related commits into feature/improvement categories.]
+
+Guidelines:
+- Focus on the business value and user impact
+- Avoid technical jargon in the executive summary
+- Group related commits together into features or themes
+- Highlight major accomplishments
+- Keep it concise and clear
+- If commits seem related to a specific feature, mention it
+- If there are bug fixes, summarize their impact
+- Mention if work seems to be focused on a particular area (UI, backend, etc.)
+
+Remember to maintain a professional, business-focused tone throughout the summary.`;
+
+  const messages = [
+    {
+      role: 'system',
+      content:
+        'You are a technical product manager creating weekly development summaries for various stakeholders.',
+    },
+    { role: 'user', content: prompt },
+  ];
+
+  const response = await huggingFaceClient.chatCompletion(
+    'mistralai/Mixtral-8x7B-Instruct-v0.1',
+    messages,
+    300 // increased max tokens for more detailed response
+  );
+
+  return response;
 }
 
 serve(async (req) => {
@@ -109,9 +160,6 @@ serve(async (req) => {
     //   throw statsError;
     // }
 
-    // For testing, log the mock data
-    const githubData = await fetchGitHubStats('mock-token', weekStart);
-
     if (tokenError || !tokenData) {
       throw new Error('GitHub integration not found');
     }
@@ -121,14 +169,14 @@ serve(async (req) => {
 
     const githubClient = new GitHubClient(tokenData.access_token);
 
-    const recentRepos = await githubClient.getActivitySummary('ngattusohw', 3);
+    const recentRepos = await githubClient.getActivitySummary('ngattusohw', 7);
 
     console.log('Recent repos:', recentRepos);
 
     return new Response(
       JSON.stringify({
         stats: recentRepos,
-        summary: await generateSummary(githubData),
+        summary: await generateSummary(recentRepos),
         week_start: weekStart,
         user_id: userId,
       }),
