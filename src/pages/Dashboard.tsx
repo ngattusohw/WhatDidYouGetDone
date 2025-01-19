@@ -19,11 +19,11 @@ import { useWeeklyStats } from '@/hooks/useWeeklyStats';
 export default function Dashboard() {
   const { user } = useAuth();
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const { data: stats, isLoading, error } = useWeeklyStats(selectedDate);
+  const { data: weeklyStats, isLoading, error } = useWeeklyStats(selectedDate);
 
   useEffect(() => {
-    console.log('Stats:', stats);
-  }, [stats]);
+    console.log('Stats:', weeklyStats);
+  }, [weeklyStats]);
 
   const navigateWeek = (direction: 'prev' | 'next') => {
     setSelectedDate((current) =>
@@ -38,6 +38,30 @@ export default function Dashboard() {
   if (isLoading) {
     return <div>Loading...</div>;
   }
+
+  const stats = weeklyStats?.stats;
+
+  // Convert dailyCommits object to array for chart
+  const dailyCommitsData = stats?.overallStatistics?.dailyCommits
+    ? Object.values(stats.overallStatistics.dailyCommits)
+        .map((day) => ({
+          date: format(new Date(day.date), 'MMM d'),
+          commits: day.count,
+        }))
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    : [];
+
+  // Convert repositories object to array for list
+  const repoActivity = stats?.repositories
+    ? Object.entries(stats.repositories).map(([name, data]) => ({
+        name,
+        commits: data.totalCommits,
+        averageCommitsPerDay: data.statistics.averageCommitsPerDay,
+        // These will be used later when we add PR support
+        pull_requests: 0,
+        merged_prs: 0,
+      }))
+    : [];
 
   return (
     <div className="space-y-6">
@@ -74,27 +98,31 @@ export default function Dashboard() {
             <GitCommit className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.stats.total_commits || 0}</div>
+            <div className="text-2xl font-bold">{stats?.overallStatistics?.totalCommits || 0}</div>
+            <p className="text-xs text-muted-foreground">
+              {stats?.overallStatistics?.averageCommitsPerDay.toFixed(1)} commits/day
+            </p>
           </CardContent>
         </Card>
-        <Card>
+        {/* Comment out PR cards for now but keep the UI structure */}
+        {/* <Card className="opacity-50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Pull Requests</CardTitle>
             <GitPullRequest className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.stats.pull_requests || 0}</div>
+            <div className="text-2xl font-bold">Coming soon</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="opacity-50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Merged PRs</CardTitle>
             <GitMerge className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.stats.merged_prs || 0}</div>
+            <div className="text-2xl font-bold">Coming soon</div>
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
@@ -106,7 +134,7 @@ export default function Dashboard() {
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart
-                  data={stats?.stats.daily_commits || []}
+                  data={dailyCommitsData}
                   margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" />
@@ -131,7 +159,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground">
-              {stats?.summary || 'No summary available for this week.'}
+              {weeklyStats?.summary || 'No summary available for this week.'}
             </p>
           </CardContent>
         </Card>
@@ -143,21 +171,24 @@ export default function Dashboard() {
           <CardContent>
             <ScrollArea className="h-[300px]">
               <div className="space-y-4">
-                {(stats?.stats.repos || []).map((repo) => (
+                {repoActivity.map((repo) => (
                   <div key={repo.name} className="flex items-center justify-between border-b pb-4">
                     <div>
                       <p className="font-medium">{repo.name}</p>
-                      <p className="text-sm text-muted-foreground">{repo.description}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {repo.averageCommitsPerDay.toFixed(1)} commits/day
+                      </p>
                     </div>
                     <div className="flex items-center gap-4">
                       <div className="text-right">
                         <p className="text-sm font-medium">Commits</p>
                         <p className="text-sm text-muted-foreground">{repo.commits}</p>
                       </div>
-                      <div className="text-right">
+                      {/* Keep PR stats UI but comment out for now */}
+                      {/* <div className="text-right opacity-50">
                         <p className="text-sm font-medium">PRs</p>
-                        <p className="text-sm text-muted-foreground">{repo.pull_requests}</p>
-                      </div>
+                        <p className="text-sm text-muted-foreground">Soon</p>
+                      </div> */}
                     </div>
                   </div>
                 ))}

@@ -127,11 +127,10 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({
-        stats: githubData,
+        stats: recentRepos,
         summary: await generateSummary(githubData),
         week_start: weekStart,
         user_id: userId,
-        recent_repos: recentRepos,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

@@ -44,3 +44,57 @@ export interface ProductivityStats {
   stats: Record<string, any>;
   summary: string | null;
 }
+
+export interface TimeWindow {
+  start: Date;
+  end: Date;
+}
+
+export interface Commit {
+  message: string;
+  timestamp: Date;
+  sha: string;
+}
+
+export interface DailyCommits {
+  date: string;
+  count: number;
+  commits: Commit[];
+}
+
+export interface Statistics {
+  totalCommits: number;
+  dailyCommits: Record<string, DailyCommits>;
+  averageCommitsPerDay: number;
+  mostActiveDay: {
+    date: string;
+    commits: number;
+  };
+  leastActiveDay: {
+    date: string;
+    commits: number;
+  };
+}
+
+export interface RepositoryActivity {
+  totalCommits: number;
+  organization?: string;
+  commits: Commit[];
+  statistics: Statistics;
+}
+
+export interface OrganizationActivity {
+  totalCommits: number;
+  repositories: string[];
+  statistics: Statistics;
+}
+
+export interface GitHubActivity {
+  timeWindow: TimeWindow;
+  repositories: Record<string, RepositoryActivity>;
+  organizations: Record<string, OrganizationActivity>;
+  overallStatistics: Statistics;
+  overallSummary?: string;
+}
+
+export type WeeklyStats = GitHubActivity;
