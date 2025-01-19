@@ -12,23 +12,44 @@ interface Commit {
   sha: string;
 }
 
+interface DailyCommits {
+  date: string; // YYYY-MM-DD format
+  count: number;
+  commits: Commit[];
+}
+
+interface Statistics {
+  totalCommits: number;
+  dailyCommits: Record<string, DailyCommits>;
+  averageCommitsPerDay: number;
+  mostActiveDay: {
+    date: string;
+    commits: number;
+  };
+  leastActiveDay: {
+    date: string;
+    commits: number;
+  };
+}
+
 interface RepositoryActivity {
   totalCommits: number;
   organization?: string;
   commits: Commit[];
-  summary?: string;
+  statistics: Statistics;
 }
 
 interface OrganizationActivity {
   totalCommits: number;
   repositories: string[];
-  summary?: string;
+  statistics: Statistics;
 }
 
 interface GitHubActivity {
   timeWindow: TimeWindow;
   repositories: Record<string, RepositoryActivity>;
   organizations: Record<string, OrganizationActivity>;
+  overallStatistics: Statistics;
   overallSummary?: string;
 }
 
@@ -249,6 +270,93 @@ export class GitHubClient {
       }
     }
 
+    // After processing all events, calculate statistics
+    const allCommits: Commit[] = [];
+
+    // Calculate statistics for each repository
+    Object.values(activity.repositories).forEach((repo) => {
+      repo.statistics = calculateStatistics(
+        repo.commits,
+        activity.timeWindow.start,
+        activity.timeWindow.end
+      );
+      allCommits.push(...repo.commits);
+    });
+
+    // Calculate statistics for each organization
+    Object.values(activity.organizations).forEach((org) => {
+      const orgCommits = org.repositories.flatMap(
+        (repoName) => activity.repositories[repoName]?.commits || []
+      );
+      org.statistics = calculateStatistics(
+        orgCommits,
+        activity.timeWindow.start,
+        activity.timeWindow.end
+      );
+    });
+
+    // Calculate overall statistics
+    activity.overallStatistics = calculateStatistics(
+      allCommits,
+      activity.timeWindow.start,
+      activity.timeWindow.end
+    );
+
     return activity;
   }
+}
+
+function calculateStatistics(commits: Commit[], startDate: Date, endDate: Date): Statistics {
+  const dailyCommits: Record<string, DailyCommits> = {};
+
+  // Initialize dailyCommits for all days in the time window
+  let currentDate = new Date(startDate);
+  while (currentDate <= endDate) {
+    const dateStr = currentDate.toISOString().split('T')[0];
+    dailyCommits[dateStr] = {
+      date: dateStr,
+      count: 0,
+      commits: [],
+    };
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+
+  // Group commits by day
+  commits.forEach((commit) => {
+    const dateStr = new Date(commit.timestamp).toISOString().split('T')[0];
+    if (dailyCommits[dateStr]) {
+      dailyCommits[dateStr].count++;
+      dailyCommits[dateStr].commits.push(commit);
+    }
+  });
+
+  // Calculate most and least active days
+  const dailyStats = Object.values(dailyCommits);
+  const mostActiveDay = dailyStats.reduce(
+    (max, day) => (day.count > max.count ? day : max),
+    dailyStats[0]
+  );
+  const leastActiveDay = dailyStats.reduce(
+    (min, day) => (day.count < min.count ? day : min),
+    dailyStats[0]
+  );
+
+  // Calculate average commits per day
+  const totalDays = dailyStats.length;
+  const totalCommits = commits.length;
+  const averageCommitsPerDay = totalDays > 0 ? totalCommits / totalDays : 0;
+
+  return {
+    totalCommits,
+    dailyCommits,
+    averageCommitsPerDay,
+    mostActiveDay: {
+      date: mostActiveDay.date,
+      commits: mostActiveDay.count,
+    },
+    leastActiveDay: {
+      date: leastActiveDay.date,
+      commits: leastActiveDay.count,
+    },
+  };
 }
