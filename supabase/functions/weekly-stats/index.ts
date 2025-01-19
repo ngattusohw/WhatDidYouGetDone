@@ -171,12 +171,18 @@ serve(async (req) => {
 
     const recentRepos = await githubClient.getActivitySummary('ngattusohw', 7);
 
-    console.log('Recent repos:', recentRepos);
+    let summary;
+    try {
+      summary = await generateSummary(recentRepos);
+    } catch (error) {
+      console.error('Error generating summary:', error);
+      summary = 'Error generating summary';
+    }
 
     return new Response(
       JSON.stringify({
         stats: recentRepos,
-        summary: await generateSummary(recentRepos),
+        summary: summary,
         week_start: weekStart,
         user_id: userId,
       }),
