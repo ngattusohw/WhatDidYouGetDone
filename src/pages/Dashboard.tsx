@@ -17,7 +17,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useWeeklyStats } from '@/hooks/useWeeklyStats';
 
 export default function Dashboard() {
-  const { user } = useAuth();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const { data: weeklyStats, isLoading, error } = useWeeklyStats(selectedDate);
 
@@ -159,7 +158,8 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground">
-              {weeklyStats?.summary || 'No summary available for this week.'}
+              {weeklyStats?.summary?.choices[0]?.message?.content ||
+                'No summary available for this week.'}
             </p>
           </CardContent>
         </Card>

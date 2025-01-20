@@ -55,7 +55,7 @@ export interface GitHubActivity {
 
 export interface WeeklyStats {
   stats: GitHubActivity;
-  summary: string;
+  summary: any;
   week_start: string;
 }
 
