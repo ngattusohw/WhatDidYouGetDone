@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   LineChart,
@@ -11,7 +10,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { startOfWeek, format, subWeeks, addWeeks } from 'date-fns';
-import { ChevronLeft, ChevronRight, GitCommit, GitPullRequest, GitMerge } from 'lucide-react';
+import { ChevronLeft, ChevronRight, GitCommit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useWeeklyStats } from '@/hooks/useWeeklyStats';

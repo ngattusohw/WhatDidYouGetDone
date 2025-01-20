@@ -1,14 +1,8 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+// import { useNavigate } from 'react-router-dom';
 import { Github, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/lib/supabase';
@@ -30,7 +24,7 @@ interface UserIntegration {
 
 export default function Integrations() {
   const { user } = useAuth();
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const [integrations, setIntegrations] = useState<Integration[]>([]);
   const [userIntegrations, setUserIntegrations] = useState<UserIntegration[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -66,7 +60,7 @@ export default function Integrations() {
 
   const handleGithubAuth = async () => {
     try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: 'github',
         options: {
           redirectTo: `${window.location.origin}/dashboard`,
@@ -107,9 +101,7 @@ export default function Integrations() {
                     {integration.type === 'github' && <Github className="h-5 w-5" />}
                     {integration.name}
                   </CardTitle>
-                  {integration.is_premium && (
-                    <Badge variant="secondary">Premium</Badge>
-                  )}
+                  {integration.is_premium && <Badge variant="secondary">Premium</Badge>}
                 </div>
                 <CardDescription>{integration.description}</CardDescription>
               </CardHeader>
@@ -121,12 +113,10 @@ export default function Integrations() {
                 ) : (
                   <Button
                     className="w-full"
-                    variant={userIntegration?.is_active ? "secondary" : "default"}
+                    variant={userIntegration?.is_active ? 'secondary' : 'default'}
                     onClick={handleGithubAuth}
                   >
-                    {userIntegration?.is_active
-                      ? 'Connected'
-                      : `Connect ${integration.name}`}
+                    {userIntegration?.is_active ? 'Connected' : `Connect ${integration.name}`}
                   </Button>
                 )}
               </CardContent>

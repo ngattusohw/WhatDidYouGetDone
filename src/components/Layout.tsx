@@ -1,7 +1,6 @@
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import Navbar from '@/components/Navbar';
-import { useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 
 export default function Layout() {

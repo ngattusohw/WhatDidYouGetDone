@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { Github, Lock } from 'lucide-react';
 import { useState } from 'react';
+import { Integration } from '@/lib/types';
 
 export default function Settings() {
   const { data: integrations, isLoading } = useUserIntegrations();
@@ -39,10 +40,10 @@ export default function Settings() {
     return <IntegrationsLoadingSkeleton />;
   }
 
-  const handleDisconnect = (id: string): void => {
-    activeIntegrations.filter((i) => i.id !== id);
-    throw new Error('Function not implemented.');
-  };
+  // const handleDisconnect = (id: string): void => {
+  //   activeIntegrations.filter((i) => i.id !== id);
+  //   throw new Error('Function not implemented.');
+  // };
 
   return (
     <div className="space-y-6">
@@ -66,7 +67,7 @@ export default function Settings() {
                     <IntegrationIcon type={integration.type} />
                     {integration.name}
                   </div>
-                  <Badge variant="success">Active</Badge>
+                  <Badge variant="default">Active</Badge>
                 </CardTitle>
                 <CardDescription>{integration.description}</CardDescription>
               </CardHeader>

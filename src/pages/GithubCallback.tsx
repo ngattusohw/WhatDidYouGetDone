@@ -1,13 +1,13 @@
 import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useGitHubIntegration } from '@/hooks/useGitHubIntegration';
+// import { useGitHubIntegration } from '@/hooks/useGitHubIntegration';
 import { Loader2 } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
+// import { toast } from '@/hooks/use-toast';
 
 export default function GitHubCallback() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { mutate: saveGitHubToken } = useGitHubIntegration();
+  // const { mutate: saveGitHubToken } = useGitHubIntegration();
 
   useEffect(() => {
     // Need to wait for the next tick to ensure hash is available
