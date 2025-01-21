@@ -49,6 +49,8 @@ export default function Dashboard() {
         .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     : [];
 
+  console.log('dailyCommitsData', dailyCommitsData);
+
   // Convert repositories object to array for list
   const repoActivity = stats?.repositories
     ? Object.entries(stats.repositories).map(([name, data]) => ({

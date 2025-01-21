@@ -169,7 +169,7 @@ serve(async (req) => {
 
     const githubClient = new GitHubClient(tokenData.access_token);
 
-    const recentRepos = await githubClient.getActivitySummary('ngattusohw', 7);
+    const recentRepos = await githubClient.getActivitySummary('ngattusohw', 7, weekStart);
 
     let summary;
     try {

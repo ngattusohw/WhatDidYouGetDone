@@ -174,9 +174,14 @@ export class GitHubClient {
     return Array.from(recentRepos);
   }
 
-  async getActivitySummary(username: string, days: number = 7): Promise<GitHubActivity> {
-    const endDate = new Date();
-    const startDate = subDays(endDate, days);
+  async getActivitySummary(
+    username: string,
+    days: number = 7,
+    provided_startDate: string
+  ): Promise<GitHubActivity> {
+    const startDate = new Date(provided_startDate);
+    const endDate = new Date(startDate);
+    endDate.setDate(endDate.getDate() + days);
 
     const activity: GitHubActivity = {
       timeWindow: {
