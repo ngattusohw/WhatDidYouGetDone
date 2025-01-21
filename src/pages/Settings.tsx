@@ -1,4 +1,5 @@
 import { useUserIntegrations } from '@/hooks/useUserIntegrations';
+import { useGitHubIntegration } from '@/hooks/useGitHubIntegration';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,6 +12,8 @@ import { Integration } from '@/lib/types';
 
 export default function Settings() {
   const { data: integrations, isLoading } = useUserIntegrations();
+  const { mutate: updateToken } = useGitHubIntegration();
+
   const { toast } = useToast();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [newToken, setNewToken] = useState('');
@@ -28,8 +31,21 @@ export default function Settings() {
       return;
     }
 
-    // TODO: Call your update token mutation here
-    console.log('Updating token for', integration.id, 'with', newToken);
+    try {
+      console.log('Updating token for', integration.id, 'with', newToken);
+
+      updateToken({ oAuthCode: newToken });
+      toast({
+        title: 'Success',
+        description: 'GitHub token saved successfully',
+      });
+    } catch (error: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: error?.message || 'Failed to save GitHub token',
+      });
+    }
 
     // Reset states
     setEditingId(null);
@@ -140,10 +156,42 @@ export default function Settings() {
                 </CardTitle>
                 <CardDescription>{integration.description}</CardDescription>
               </CardHeader>
-              <CardContent>
-                <Button className="w-full" disabled={integration.is_premium}>
-                  {integration.is_premium ? 'Upgrade to Enable' : 'Connect'}
-                </Button>
+              <CardContent className="space-y-4">
+                {editingId === integration.id ? (
+                  <>
+                    <Input
+                      type="password"
+                      placeholder={`Enter new ${integration.name} token`}
+                      value={newToken}
+                      onChange={(e) => setNewToken(e.target.value)}
+                      autoFocus
+                    />
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setEditingId(null);
+                          setNewToken('');
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                      <Button onClick={() => handleUpdateToken(integration)}>Save Token</Button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <CardContent>
+                      <Button
+                        className="w-full"
+                        disabled={integration.is_premium}
+                        onClick={() => setEditingId(integration.id)}
+                      >
+                        {integration.is_premium ? 'Upgrade to Enable' : 'Connect'}
+                      </Button>
+                    </CardContent>
+                  </>
+                )}
               </CardContent>
             </Card>
           ))}
