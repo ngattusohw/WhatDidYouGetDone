@@ -1,4 +1,4 @@
-# Project Setup Guide
+# Project Setup Guide 
 
 This guide provides a high-level overview of how to start and configure the Supabase service, Vite React app, and EAS React Native application.
 
