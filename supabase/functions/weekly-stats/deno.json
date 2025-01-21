@@ -1,0 +1,15 @@
+{
+  "imports": {
+    "@octokit/rest": "npm:@octokit/rest",
+    "date-fns": "npm:date-fns",
+    "@huggingface/inference": "npm:@huggingface/inference"
+  },
+  "tasks": {
+    "start": "deno run --allow-net --allow-env index.ts"
+  },
+  "compilerOptions": {
+    "allowJs": true,
+    "lib": ["deno.window"],
+    "strict": true
+  }
+}

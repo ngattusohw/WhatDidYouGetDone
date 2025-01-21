@@ -2,7 +2,7 @@
 # https://supabase.com/docs/guides/local-development/cli/config
 # A string used to distinguish different Supabase projects on the same host. Defaults to the
 # working directory name when running `supabase init`.
-project_id = "WhatDidYouGetDone"
+project_id = "what-did-you-get-done"
 
 [api]
 enabled = true
@@ -119,6 +119,7 @@ minimum_password_length = 6
 password_requirements = ""
 
 [auth.email]
+enabled = true
 # Allow/disallow new user signups via email to your project.
 enable_signup = true
 # If enabled, a user will be required to confirm any email change on both the old, and new email
