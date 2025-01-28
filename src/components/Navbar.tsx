@@ -40,9 +40,8 @@ export default function Navbar() {
             </div>
           </div>
           <div className="flex items-center space-x-4">
-            <ThemeToggle />
             <Button variant="ghost" onClick={signOut}>
-              Sign out
+              <span className="text-white">Sign out</span>
             </Button>
           </div>
         </div>

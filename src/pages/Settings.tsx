@@ -2,7 +2,13 @@ import { useUserIntegrations } from '@/hooks/useUserIntegrations';
 import { useGitHubIntegration } from '@/hooks/useGitHubIntegration';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
@@ -18,8 +24,8 @@ export default function Settings() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [newToken, setNewToken] = useState('');
 
-  const activeIntegrations = integrations?.filter((i) => i.is_active) ?? [];
-  const inactiveIntegrations = integrations?.filter((i) => !i.is_active) ?? [];
+  const activeIntegrations = integrations?.filter(i => i.is_active) ?? [];
+  const inactiveIntegrations = integrations?.filter(i => !i.is_active) ?? [];
 
   const handleUpdateToken = (integration: Integration) => {
     if (!newToken.trim()) {
@@ -39,7 +45,7 @@ export default function Settings() {
         title: 'Success',
         description: 'GitHub token saved successfully',
       });
-    } catch (error: any) {
+    } catch (error) {
       toast({
         variant: 'destructive',
         title: 'Error',
@@ -65,17 +71,21 @@ export default function Settings() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Settings</h1>
-        <p className="text-muted-foreground mt-2">Manage your integrations and account settings</p>
+        <p className="text-muted-foreground mt-2">
+          Manage your integrations and account settings
+        </p>
       </div>
 
       {/* Active Integrations */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold">Active Integrations</h2>
-          <Badge variant="secondary">{activeIntegrations.length} of 2 Free Slots Used</Badge>
+          <Badge variant="secondary">
+            {activeIntegrations.length} of 2 Free Slots Used
+          </Badge>
         </div>
         <div className="grid gap-4">
-          {activeIntegrations.map((integration) => (
+          {activeIntegrations.map(integration => (
             <Card key={integration.id}>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
@@ -83,7 +93,12 @@ export default function Settings() {
                     <IntegrationIcon type={integration.type} />
                     {integration.name}
                   </div>
-                  <Badge variant="default">Active</Badge>
+                  <Badge
+                    variant="default"
+                    className="border-transparent bg-purple-600 text-destructive-foreground shadow"
+                  >
+                    Active
+                  </Badge>
                 </CardTitle>
                 <CardDescription>{integration.description}</CardDescription>
               </CardHeader>
@@ -94,7 +109,7 @@ export default function Settings() {
                       type="password"
                       placeholder={`Enter new ${integration.name} token`}
                       value={newToken}
-                      onChange={(e) => setNewToken(e.target.value)}
+                      onChange={e => setNewToken(e.target.value)}
                       autoFocus
                     />
                     <div className="flex justify-end gap-2">
@@ -107,12 +122,18 @@ export default function Settings() {
                       >
                         Cancel
                       </Button>
-                      <Button onClick={() => handleUpdateToken(integration)}>Save Token</Button>
+                      <Button onClick={() => handleUpdateToken(integration)}>
+                        Save Token
+                      </Button>
                     </div>
                   </>
                 ) : (
                   <>
-                    <Input type="password" value={integration.access_token || ''} disabled />
+                    <Input
+                      type="password"
+                      value={integration.access_token || ''}
+                      disabled
+                    />
                     <div className="flex justify-end gap-2">
                       <Button
                         variant="outline"
@@ -139,8 +160,11 @@ export default function Settings() {
           <h2 className="text-xl font-semibold">Available Integrations</h2>
         </div>
         <div className="grid gap-4">
-          {inactiveIntegrations.map((integration) => (
-            <Card key={integration.id} className={integration.is_premium ? 'opacity-75' : ''}>
+          {inactiveIntegrations.map(integration => (
+            <Card
+              key={integration.id}
+              className={integration.is_premium ? 'opacity-75' : ''}
+            >
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -163,7 +187,7 @@ export default function Settings() {
                       type="password"
                       placeholder={`Enter new ${integration.name} token`}
                       value={newToken}
-                      onChange={(e) => setNewToken(e.target.value)}
+                      onChange={e => setNewToken(e.target.value)}
                       autoFocus
                     />
                     <div className="flex justify-end gap-2">
@@ -176,18 +200,22 @@ export default function Settings() {
                       >
                         Cancel
                       </Button>
-                      <Button onClick={() => handleUpdateToken(integration)}>Save Token</Button>
+                      <Button onClick={() => handleUpdateToken(integration)}>
+                        Save Token
+                      </Button>
                     </div>
                   </>
                 ) : (
                   <>
-                    <CardContent>
+                    <CardContent className="p-0">
                       <Button
                         className="w-full"
                         disabled={integration.is_premium}
                         onClick={() => setEditingId(integration.id)}
                       >
-                        {integration.is_premium ? 'Upgrade to Enable' : 'Connect'}
+                        {integration.is_premium
+                          ? 'Upgrade to Enable'
+                          : 'Connect'}
                       </Button>
                     </CardContent>
                   </>
@@ -216,7 +244,7 @@ function IntegrationsLoadingSkeleton() {
     <div className="space-y-6">
       <Skeleton className="h-8 w-[200px]" />
       <div className="space-y-4">
-        {[1, 2, 3].map((i) => (
+        {[1, 2, 3].map(i => (
           <Skeleton key={i} className="h-[200px] w-full" />
         ))}
       </div>
