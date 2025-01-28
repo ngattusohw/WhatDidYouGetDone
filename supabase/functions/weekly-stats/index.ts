@@ -55,11 +55,14 @@ ${repoSummaries}
 
 Please provide your summary in the following format:
 
-EXECUTIVE SUMMARY:
-[Write a 2-3 sentence overview of all work done across all repositories. Focus on features, improvements, and business impact rather than technical details. Make it accessible to non-technical readers.]
+This week:
+Total commits: [total commits]
+- [very short high level summary of work per repository, group related features]
+- [keep the bullet points short and concise, and only include the most important ones, and only include 4-5]
+- [group multiple repositories together if they are related, or share commit messages]
+Next week:
+- [include this section if theres any hints of what other work needs to be done via the messages]
 
-REPOSITORY SUMMARIES:
-[For each repository, provide a 1-2 sentence summary of the main work done. Group related commits into feature/improvement categories.]
 
 Guidelines:
 - Focus on the business value and user impact
