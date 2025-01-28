@@ -45,7 +45,7 @@ export default function Settings() {
         title: 'Success',
         description: 'GitHub token saved successfully',
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
         variant: 'destructive',
         title: 'Error',
