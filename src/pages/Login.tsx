@@ -38,10 +38,10 @@ export default function Login() {
     try {
       setIsLoading(true);
       const { error } = await supabase.auth.signInWithPassword(values);
-      
+
       if (error) throw error;
-      
-      navigate('/dashboard');
+
+      navigate('/app/dashboard');
     } catch (error) {
       toast.error('Failed to sign in. Please check your credentials.');
     } finally {

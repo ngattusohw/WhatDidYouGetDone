@@ -17,21 +17,21 @@ export default function Navbar() {
             </Link>
             <div className="flex space-x-4">
               <Link
-                to="/dashboard"
+                to="/app/dashboard"
                 className="flex items-center space-x-2 text-muted-foreground hover:text-foreground"
               >
                 <Activity size={20} />
                 <span>Dashboard</span>
               </Link>
               <Link
-                to="/teams"
+                to="/app/teams"
                 className="flex items-center space-x-2 text-muted-foreground hover:text-foreground"
               >
                 <Users size={20} />
                 <span>Teams</span>
               </Link>
               <Link
-                to="/settings"
+                to="/app/settings"
                 className="flex items-center space-x-2 text-muted-foreground hover:text-foreground"
               >
                 <Settings size={20} />

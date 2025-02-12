@@ -12,6 +12,7 @@ import Integrations from '@/pages/Integrations';
 // import Teams from '@/pages/Teams';
 import Settings from '@/pages/Settings';
 import GitHubCallback from './pages/GithubCallback';
+import Home from '@/pages/Home';
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -31,15 +32,16 @@ function App() {
     <Router>
       <AuthProvider>
         <Routes>
+          <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/" element={<Layout />}>
-            <Route index element={<Navigate to="/dashboard" replace />} />
+          <Route path="/auth/github/callback" element={<GitHubCallback />} />
+          <Route path="/app" element={<Layout />}>
+            <Route index element={<Navigate to="/app/dashboard" replace />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="integrations" element={<Integrations />} />
             {/* <Route path="teams" element={<Teams />} /> */}
             <Route path="settings" element={<Settings />} />
-            <Route path="/auth/github/callback" element={<GitHubCallback />} />
           </Route>
         </Routes>
         <Toaster />
