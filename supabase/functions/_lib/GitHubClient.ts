@@ -175,7 +175,6 @@ export class GitHubClient {
   }
 
   async getActivitySummary(
-    username: string,
     days: number = 7,
     provided_startDate: string
   ): Promise<GitHubActivity> {
@@ -193,6 +192,11 @@ export class GitHubClient {
     };
 
     try {
+
+      const { data } = await this.octokit.rest.users.getAuthenticated();
+      // The 'login' field will contain the username
+      let username = data?.login;
+
       // Use iterator to control pagination
       const iterator = this.octokit.paginate.iterator('GET /users/{username}/events', {
         username,

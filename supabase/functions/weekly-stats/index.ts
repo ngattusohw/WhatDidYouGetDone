@@ -47,7 +47,7 @@ ${day.commits}
 You are a technical product manager creating a weekly summary of development work. Your goal is to create two summaries:
 
 1. A high-level executive summary that non-technical stakeholders can understand
-2. Brief summaries for each repository's activity
+2. Extremely brief summaries for each repository's activity
 
 Here's the GitHub activity data for the past week:
 
@@ -57,7 +57,7 @@ Please provide your summary in the following format:
 
 This week:
 Total commits: [total commits]
-- [very short high level summary of work per repository, group related features]
+- [very short high level summary of work per repository, group related features, and stick to a single sentence per repository]
 - [keep the bullet points short and concise, and only include the most important ones, and only include 4-5]
 - [group multiple repositories together if they are related, or share commit messages]
 Next week:
@@ -67,14 +67,14 @@ Next week:
 Guidelines:
 - Focus on the business value and user impact
 - Avoid technical jargon in the executive summary
+- Avoid any mention of debug statements
 - Group related commits together into features or themes
 - Highlight major accomplishments
 - Keep it concise and clear
 - If commits seem related to a specific feature, mention it
 - If there are bug fixes, summarize their impact
 - Mention if work seems to be focused on a particular area (UI, backend, etc.)
-
-Remember to maintain a professional, business-focused tone throughout the summary.`;
+`;
 
   const messages = [
     {
@@ -170,9 +170,9 @@ serve(async (req) => {
     const token = tokenData.access_token;
     console.log('This is my token', token);
 
-    const githubClient = new GitHubClient(tokenData.access_token);
+    const githubClient = new GitHubClient(token);
 
-    const recentRepos = await githubClient.getActivitySummary('ngattusohw', 7, weekStart);
+    const recentRepos = await githubClient.getActivitySummary(7, weekStart);
 
     let summary;
     try {
