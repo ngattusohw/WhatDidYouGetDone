@@ -15,6 +15,7 @@ import { ChevronLeft, ChevronRight, GitCommit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useWeeklyStats } from '@/hooks/useWeeklyStats';
+import ReactMarkdown from 'react-markdown';
 
 export default function Dashboard() {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -25,7 +26,7 @@ export default function Dashboard() {
   }, [weeklyStats]);
 
   const navigateWeek = (direction: 'prev' | 'next') => {
-    setSelectedDate(current =>
+    setSelectedDate((current) =>
       direction === 'prev' ? subWeeks(current, 1) : addWeeks(current, 1)
     );
   };
@@ -65,7 +66,7 @@ export default function Dashboard() {
   // Convert dailyCommits object to array for chart
   const dailyCommitsData = stats?.overallStatistics?.dailyCommits
     ? Object.values(stats.overallStatistics.dailyCommits)
-        .map(day => ({
+        .map((day) => ({
           date: format(new Date(day.date), 'MMM d'),
           commits: day.count,
         }))
@@ -199,10 +200,42 @@ export default function Dashboard() {
             <CardTitle>Weekly Summary</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-muted-foreground">
-              {weeklyStats?.summary?.choices[0]?.message?.content ||
-                'No summary available for this week.'}
-            </p>
+            {weeklyStats?.summary?.choices?.[0]?.message?.content ? (
+              <ReactMarkdown
+                className="prose prose-neutral dark:prose-invert max-w-none"
+                components={{
+                  // Customize heading styles
+                  h2: ({ node, ...props }) => (
+                    <h2 className="text-xl font-bold mt-4 mb-2" {...props} />
+                  ),
+                  // Customize bullet points
+                  ul: ({ node, ...props }) => (
+                    <ul className="space-y-2 my-4" {...props} />
+                  ),
+                  li: ({ node, ...props }) => (
+                    <li className="text-muted-foreground" {...props} />
+                  ),
+                  // Style strong text (bold)
+                  strong: ({ node, ...props }) => (
+                    <strong
+                      className="font-semibold text-foreground"
+                      {...props}
+                    />
+                  ),
+                  // Add proper spacing for paragraphs
+                  p: ({ node, ...props }) => <p className="my-2" {...props} />,
+                }}
+              >
+                {weeklyStats.summary.choices[0].message.content.replace(
+                  /```$/,
+                  ''
+                )}
+              </ReactMarkdown>
+            ) : (
+              <p className="text-muted-foreground">
+                No summary available for this week.
+              </p>
+            )}
           </CardContent>
         </Card>
 
@@ -213,7 +246,7 @@ export default function Dashboard() {
           <CardContent>
             <ScrollArea className="h-[300px]">
               <div className="space-y-4">
-                {repoActivity.map(repo => (
+                {repoActivity.map((repo) => (
                   <div
                     key={repo.name}
                     className="flex items-center justify-between border-b pb-4"

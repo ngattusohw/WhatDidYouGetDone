@@ -53,16 +53,17 @@ Here's the GitHub activity data for the past week:
 
 ${repoSummaries}
 
-Please provide your summary in the following format:
+Please provide your summary in the following markdown format:
 
-This week:
-Total commits: [total commits]
+## This week
+**Total commits:** [total commits]
+
 - [very short high level summary of work per repository, group related features, and stick to a single sentence per repository]
 - [keep the bullet points short and concise, and only include the most important ones, and only include 4-5]
 - [group multiple repositories together if they are related, or share commit messages]
-Next week:
-- [include this section if theres any hints of what other work needs to be done via the messages]
 
+## Next week
+- [include this section if theres any hints of what other work needs to be done via the messages]
 
 Guidelines:
 - Focus on the business value and user impact
