@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Github, LineChart, Timer, Users2 } from 'lucide-react';
+import { Github, LineChart, Timer } from 'lucide-react';
 
 export default function Home() {
   return (
