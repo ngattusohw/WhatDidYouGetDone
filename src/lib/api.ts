@@ -59,8 +59,10 @@ export interface WeeklyStats {
   week_start: string;
 }
 
-export async function fetchWeeklyStats(weekStart: string): Promise<WeeklyStats> {
-  // Get the session
+export async function fetchWeeklyStats(
+  weekStart: string,
+  refreshData: boolean = false
+): Promise<WeeklyStats> {
   const {
     data: { session },
   } = await supabase.auth.getSession();
@@ -72,7 +74,7 @@ export async function fetchWeeklyStats(weekStart: string): Promise<WeeklyStats> 
       // Add the Authorization header
       Authorization: `Bearer ${session?.access_token}`,
     },
-    body: JSON.stringify({ weekStart }),
+    body: JSON.stringify({ weekStart, refreshData }),
   });
 
   if (!response.ok) {

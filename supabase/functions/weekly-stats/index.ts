@@ -5,6 +5,7 @@ import { HuggingFaceClient } from '../_lib/HuggingFaceClient.ts';
 import { corsHeaders } from '../_shared/cors.ts';
 import * as jose from 'https://deno.land/x/jose@v4.15.4/index.ts';
 import { GitHubActivity } from '../_lib/GitHubClient.ts';
+import { isAfter, startOfWeek } from 'date-fns';
 
 async function generateSummary(stats: GitHubActivity) {
   let huggingFaceToken = Deno.env.get('HUGGING_FACE_API_TOKEN') ?? '';
@@ -101,6 +102,8 @@ serve(async (req) => {
   }
 
   try {
+    const { weekStart, refreshData } = await req.json();
+
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
@@ -112,11 +115,7 @@ serve(async (req) => {
       }
     );
 
-    //TODO: Determine how to get the weekStart from the request based on front end comp
-    const { weekStart } = await req.json();
-
     const authHeader = req.headers.get('Authorization')?.split(' ')[1];
-
     if (!authHeader) {
       throw new Error('No auth token provided');
     }
@@ -129,7 +128,7 @@ serve(async (req) => {
       throw new Error('Invalid token: no user ID');
     }
 
-    // First get the GitHub integration ID
+    // Get GitHub integration ID
     const { data: integration, error: integrationError } = await supabase
       .from('integrations')
       .select('id')
@@ -140,7 +139,36 @@ serve(async (req) => {
       throw new Error('GitHub integration not found');
     }
 
-    // Then get the token using the correct integration ID
+    // Check if we already have data for this week
+    const { data: existingStats, error: statsError } = await supabase
+      .from('productivity_stats')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('integration_id', integration.id)
+      .eq('week_start', weekStart)
+      .single();
+
+    // Determine if we should use existing data
+    const currentWeekStart = startOfWeek(new Date(), {
+      weekStartsOn: 1,
+    }).toISOString();
+    const isCurrentWeek = weekStart === currentWeekStart;
+    const shouldUseExisting = !refreshData && !isCurrentWeek && existingStats;
+
+    if (shouldUseExisting) {
+      return new Response(
+        JSON.stringify({
+          stats: existingStats.stats,
+          summary: existingStats.summary,
+          week_start: existingStats.week_start,
+          user_id: userId,
+          cached: true,
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // If we need fresh data, proceed with GitHub API calls
     const { data: tokenData, error: tokenError } = await supabase
       .from('integration_tokens')
       .select('access_token')
@@ -148,39 +176,29 @@ serve(async (req) => {
       .eq('integration_id', integration.id)
       .single();
 
-    // // Store the processed data
-    // const { data: stats, error: statsError } = await supabase
-    //   .from('productivity_stats')
-    //   .upsert({
-    //     user_id: user.id,
-    //     week_start: weekStart,
-    //     stats: githubData,
-    //     summary: await generateSummary(githubData),
-    //   })
-    //   .select()
-    //   .single();
-
-    // if (statsError) {
-    //   throw statsError;
-    // }
-
     if (tokenError || !tokenData) {
       throw new Error('GitHub integration not found');
     }
 
-    const token = tokenData.access_token;
-    console.log('This is my token', token);
-
-    const githubClient = new GitHubClient(token);
-
+    const githubClient = new GitHubClient(tokenData.access_token);
     const recentRepos = await githubClient.getActivitySummary(7, weekStart);
+    const summary = await generateSummary(recentRepos);
 
-    let summary;
-    try {
-      summary = await generateSummary(recentRepos);
-    } catch (error) {
-      console.error('Error generating summary:', error);
-      summary = 'Error generating summary';
+    // Save the data if it's not the current week
+    if (!isCurrentWeek) {
+      const { error: saveError } = await supabase
+        .from('productivity_stats')
+        .upsert({
+          user_id: userId,
+          integration_id: integration.id,
+          week_start: weekStart,
+          stats: recentRepos,
+          summary: summary,
+        });
+
+      if (saveError) {
+        console.error('Error saving stats:', saveError);
+      }
     }
 
     return new Response(
@@ -189,6 +207,7 @@ serve(async (req) => {
         summary: summary,
         week_start: weekStart,
         user_id: userId,
+        cached: false,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
