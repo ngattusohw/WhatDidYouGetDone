@@ -23,24 +23,24 @@ async function generateSummary(stats: GitHubActivity) {
         .filter((day) => day.commits.length > 0);
 
       return `
-Repository: ${repoName}
-Total Commits: ${repoData.statistics.totalCommits}
-Average Commits per Day: ${repoData.statistics.averageCommitsPerDay.toFixed(1)}
-Most Active Day: ${repoData.statistics.mostActiveDay.date} (${
-        repoData.statistics.mostActiveDay.commits
-      } commits)
+          Repository: ${repoName}
+          Total Commits: ${repoData.statistics.totalCommits}
+          Average Commits per Day: ${repoData.statistics.averageCommitsPerDay.toFixed(1)}
+          Most Active Day: ${repoData.statistics.mostActiveDay.date} (${
+            repoData.statistics.mostActiveDay.commits
+          } commits)
 
-Commit Activity by Day:
-${commitsByDay
-  .map(
-    (day) => `
-Date: ${day.date}
-Commits:
-${day.commits}
-`
-  )
-  .join('\n')}
-`;
+          Commit Activity by Day:
+          ${commitsByDay
+            .map(
+              (day) => `
+          Date: ${day.date}
+          Commits:
+          ${day.commits}
+        `
+            )
+            .join('\n')}
+      `;
     })
     .join('\n---\n');
 
