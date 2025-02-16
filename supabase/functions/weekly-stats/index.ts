@@ -156,10 +156,17 @@ serve(async (req) => {
     const shouldUseExisting = !refreshData && !isCurrentWeek && existingStats;
 
     if (shouldUseExisting) {
+      let parsedSummary;
+      try {
+        parsedSummary = JSON.parse(existingStats.summary);
+      } catch (e) {
+        parsedSummary = existingStats.summary; // fallback to original string if parsing fails
+      }
+
       return new Response(
         JSON.stringify({
           stats: existingStats.stats,
-          summary: existingStats.summary,
+          summary: parsedSummary,
           week_start: existingStats.week_start,
           user_id: userId,
           cached: true,
