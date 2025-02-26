@@ -1,5 +1,6 @@
 import { useUserIntegrations } from '@/hooks/useUserIntegrations';
 import { useGitHubIntegration } from '@/hooks/useGitHubIntegration';
+import { useGitHubTokenValidation } from '@/hooks/useGitHubTokenValidation';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,20 +13,22 @@ import {
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
-import { Github, Lock } from 'lucide-react';
+import { Github, Lock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { useState } from 'react';
 import { Integration } from '@/lib/types';
 
 export default function Settings() {
   const { data: integrations, isLoading } = useUserIntegrations();
   const { mutate: updateToken } = useGitHubIntegration();
+  const { data: tokenValidation, isLoading: isValidating } =
+    useGitHubTokenValidation();
 
   const { toast } = useToast();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [newToken, setNewToken] = useState('');
 
-  const activeIntegrations = integrations?.filter(i => i.is_active) ?? [];
-  const inactiveIntegrations = integrations?.filter(i => !i.is_active) ?? [];
+  const activeIntegrations = integrations?.filter((i) => i.is_active) ?? [];
+  const inactiveIntegrations = integrations?.filter((i) => !i.is_active) ?? [];
 
   const handleUpdateToken = (integration: Integration) => {
     if (!newToken.trim()) {
@@ -58,6 +61,37 @@ export default function Settings() {
     setNewToken('');
   };
 
+  const renderTokenStatus = () => {
+    if (isValidating) {
+      return (
+        <Badge variant="outline" className="ml-2 bg-gray-100">
+          <AlertCircle className="h-3 w-3 mr-1" />
+          Checking...
+        </Badge>
+      );
+    }
+
+    if (!tokenValidation) {
+      return null;
+    }
+
+    if (tokenValidation.isValid) {
+      return (
+        <Badge variant="outline" className="ml-2 bg-green-100 text-green-800">
+          <CheckCircle className="h-3 w-3 mr-1" />
+          Valid ({tokenValidation.username})
+        </Badge>
+      );
+    } else {
+      return (
+        <Badge variant="outline" className="ml-2 bg-red-100 text-red-800">
+          <XCircle className="h-3 w-3 mr-1" />
+          Invalid
+        </Badge>
+      );
+    }
+  };
+
   if (isLoading) {
     return <IntegrationsLoadingSkeleton />;
   }
@@ -85,13 +119,14 @@ export default function Settings() {
           </Badge>
         </div>
         <div className="grid gap-4">
-          {activeIntegrations.map(integration => (
+          {activeIntegrations.map((integration) => (
             <Card key={integration.id}>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <IntegrationIcon type={integration.type} />
                     {integration.name}
+                    {integration.type === 'github' && renderTokenStatus()}
                   </div>
                   <Badge
                     variant="default"
@@ -109,7 +144,7 @@ export default function Settings() {
                       type="password"
                       placeholder={`Enter new ${integration.name} token`}
                       value={newToken}
-                      onChange={e => setNewToken(e.target.value)}
+                      onChange={(e) => setNewToken(e.target.value)}
                       autoFocus
                     />
                     <div className="flex justify-end gap-2">
@@ -160,7 +195,7 @@ export default function Settings() {
           <h2 className="text-xl font-semibold">Available Integrations</h2>
         </div>
         <div className="grid gap-4">
-          {inactiveIntegrations.map(integration => (
+          {inactiveIntegrations.map((integration) => (
             <Card
               key={integration.id}
               className={integration.is_premium ? 'opacity-75' : ''}
@@ -187,7 +222,7 @@ export default function Settings() {
                       type="password"
                       placeholder={`Enter new ${integration.name} token`}
                       value={newToken}
-                      onChange={e => setNewToken(e.target.value)}
+                      onChange={(e) => setNewToken(e.target.value)}
                       autoFocus
                     />
                     <div className="flex justify-end gap-2">
@@ -244,7 +279,7 @@ function IntegrationsLoadingSkeleton() {
     <div className="space-y-6">
       <Skeleton className="h-8 w-[200px]" />
       <div className="space-y-4">
-        {[1, 2, 3].map(i => (
+        {[1, 2, 3].map((i) => (
           <Skeleton key={i} className="h-[200px] w-full" />
         ))}
       </div>
