@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useWeeklyStats } from '@/hooks/useWeeklyStats';
 import ReactMarkdown from 'react-markdown';
+import ApiErrorHandler from '@/components/ApiErrorHandler';
 
 export default function Dashboard() {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -32,7 +33,7 @@ export default function Dashboard() {
   };
 
   if (error) {
-    return <div>Error loading stats</div>;
+    return <ApiErrorHandler error={error} />;
   }
 
   if (isLoading) {

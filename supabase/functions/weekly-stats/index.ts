@@ -220,8 +220,19 @@ serve(async (req) => {
     );
   } catch (error) {
     console.error('Function Error:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
+
+    // Check for GitHub API errors
+    let errorMessage = error.message;
+    let statusCode = 500;
+
+    if (error.message.includes('Bad credentials')) {
+      errorMessage =
+        'GitHub API authentication failed: Bad credentials - https://docs.github.com/rest';
+      statusCode = 401;
+    }
+
+    return new Response(JSON.stringify({ error: errorMessage }), {
+      status: statusCode,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }

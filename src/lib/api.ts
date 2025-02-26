@@ -77,10 +77,14 @@ export async function fetchWeeklyStats(
     body: JSON.stringify({ weekStart, refreshData }),
   });
 
+  const data = await response.json();
+
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || 'Failed to fetch weekly stats');
+    // Create a more descriptive error
+    const errorMessage = data.error || 'Failed to fetch weekly stats';
+    const error = new Error(errorMessage);
+    throw error;
   }
 
-  return response.json();
+  return data;
 }
