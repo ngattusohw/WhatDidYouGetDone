@@ -294,9 +294,13 @@ export const summariesRouter = createTRPCRouter({
                 url: value?.url,
                 team: value?.team,
                 project: value?.project,
+                projectIcon: value?.projectIcon,
+                assignee: value?.assignee,
+                assigneeAvatar: value?.assigneeAvatar,
                 labels: value?.labels,
                 priority: value?.priorityLabel,
                 estimate: value?.estimate,
+                subIssueCount: value?.subIssueCount,
                 state: value?.state,
                 timestamp: metric.timestamp.toISOString(),
               });

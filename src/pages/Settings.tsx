@@ -18,6 +18,7 @@ import {
   User,
   Bell,
 } from "lucide-react";
+import { LinearIcon } from "@/components/icons/LinearIcon";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { trpc } from "@/lib/trpc";
@@ -184,12 +185,7 @@ function IntegrationIcon({ type }: { type: string }) {
     case "twitter":
       return <Twitter className="h-5 w-5" />;
     case "linear":
-      return (
-        <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M3.357 2.612a.5.5 0 0 0-.732.542l1.537 7.686a.5.5 0 0 0 .39.39l7.686 1.537a.5.5 0 0 0 .542-.732L3.357 2.612z" />
-          <path d="M20.643 21.388a.5.5 0 0 0 .732-.542l-1.537-7.686a.5.5 0 0 0-.39-.39l-7.686-1.537a.5.5 0 0 0-.542.732l9.423 9.423z" />
-        </svg>
-      );
+      return <LinearIcon className="h-5 w-5" />;
     default:
       return <AlertCircle className="h-5 w-5" />;
   }

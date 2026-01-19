@@ -106,8 +106,12 @@ export class LinearPlugin implements IntegrationPlugin<LinearConfig> {
           priorityLabel: issue.priorityLabel,
           team: issue.teamName,
           project: issue.projectName,
+          projectIcon: issue.projectIcon,
+          assignee: issue.assigneeName,
+          assigneeAvatar: issue.assigneeAvatarUrl,
           labels: issue.labels,
           estimate: issue.estimate,
+          subIssueCount: issue.subIssueCount,
           url: issue.url,
         },
         timestamp: issue.createdAt,
@@ -116,6 +120,7 @@ export class LinearPlugin implements IntegrationPlugin<LinearConfig> {
           identifier: issue.identifier,
           teamId: issue.teamId,
           projectId: issue.projectId,
+          assigneeId: issue.assigneeId,
         },
       });
     }
@@ -133,8 +138,12 @@ export class LinearPlugin implements IntegrationPlugin<LinearConfig> {
           priorityLabel: issue.priorityLabel,
           team: issue.teamName,
           project: issue.projectName,
+          projectIcon: issue.projectIcon,
+          assignee: issue.assigneeName,
+          assigneeAvatar: issue.assigneeAvatarUrl,
           labels: issue.labels,
           estimate: issue.estimate,
+          subIssueCount: issue.subIssueCount,
           url: issue.url,
         },
         timestamp: issue.completedAt || issue.createdAt,
@@ -143,6 +152,7 @@ export class LinearPlugin implements IntegrationPlugin<LinearConfig> {
           identifier: issue.identifier,
           teamId: issue.teamId,
           projectId: issue.projectId,
+          assigneeId: issue.assigneeId,
         },
       });
     }

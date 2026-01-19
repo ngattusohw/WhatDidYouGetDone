@@ -76,10 +76,16 @@ export interface LinearIssue {
   teamName: string;
   projectId?: string;
   projectName?: string;
+  projectIcon?: string;
   initiativeId?: string;
   initiativeName?: string;
+  initiativeIcon?: string;
+  assigneeId?: string;
+  assigneeName?: string;
+  assigneeAvatarUrl?: string;
   labels: string[];
   estimate?: number;
+  subIssueCount: number;
   createdAt: Date;
   completedAt?: Date;
   url: string;

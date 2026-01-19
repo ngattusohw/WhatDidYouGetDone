@@ -38,6 +38,80 @@ import { toast } from "sonner";
 
 type SummaryTemplate = "EXECUTIVE" | "DETAILED" | "INSIGHTS" | "SHAREABLE";
 
+// Common emoji shortcode to emoji mapping for Linear icons
+const EMOJI_MAP: Record<string, string> = {
+  ":bike:": "🚴",
+  ":rocket:": "🚀",
+  ":star:": "⭐",
+  ":fire:": "🔥",
+  ":bug:": "🐛",
+  ":sparkles:": "✨",
+  ":zap:": "⚡",
+  ":bulb:": "💡",
+  ":wrench:": "🔧",
+  ":gear:": "⚙️",
+  ":chart_with_upwards_trend:": "📈",
+  ":memo:": "📝",
+  ":package:": "📦",
+  ":lock:": "🔒",
+  ":key:": "🔑",
+  ":hammer:": "🔨",
+  ":art:": "🎨",
+  ":test_tube:": "🧪",
+  ":microscope:": "🔬",
+  ":satellite:": "🛰️",
+  ":earth_americas:": "🌎",
+  ":globe_with_meridians:": "🌐",
+  ":heart:": "❤️",
+  ":check:": "✅",
+  ":x:": "❌",
+  ":warning:": "⚠️",
+  ":construction:": "🚧",
+  ":seedling:": "🌱",
+  ":palm_tree:": "🌴",
+  ":deciduous_tree:": "🌳",
+  ":house:": "🏠",
+  ":office:": "🏢",
+  ":calendar:": "📅",
+  ":clock:": "🕐",
+  ":hourglass:": "⏳",
+  ":email:": "📧",
+  ":phone:": "📱",
+  ":computer:": "💻",
+  ":desktop_computer:": "🖥️",
+  ":keyboard:": "⌨️",
+  ":mouse:": "🖱️",
+  ":cloud:": "☁️",
+  ":sunny:": "☀️",
+  ":rainbow:": "🌈",
+  ":umbrella:": "☂️",
+  ":snowflake:": "❄️",
+  ":trophy:": "🏆",
+  ":medal:": "🏅",
+  ":dart:": "🎯",
+  ":game_die:": "🎲",
+  ":jigsaw:": "🧩",
+  ":musical_note:": "🎵",
+  ":video_camera:": "📹",
+  ":camera:": "📷",
+  ":book:": "📖",
+  ":books:": "📚",
+  ":newspaper:": "📰",
+  ":money_bag:": "💰",
+  ":credit_card:": "💳",
+  ":gem:": "💎",
+  ":shopping_cart:": "🛒",
+  ":gift:": "🎁",
+  ":balloon:": "🎈",
+  ":tada:": "🎉",
+  ":confetti_ball:": "🎊",
+};
+
+const convertEmojiShortcode = (shortcode: string | undefined): string => {
+  if (!shortcode) return "";
+  return EMOJI_MAP[shortcode] || shortcode;
+};
+
 const TEMPLATE_OPTIONS: { value: SummaryTemplate; label: string; description: string }[] = [
   { value: "EXECUTIVE", label: "Executive Summary", description: "High-level overview" },
   { value: "DETAILED", label: "Detailed Log", description: "Comprehensive breakdown" },
@@ -227,8 +301,8 @@ export default function Dashboard() {
                   <XAxis dataKey="date" />
                   <YAxis />
                   <Tooltip />
-                  <Bar dataKey="commits" name="Commits" fill="hsl(var(--primary))" />
-                  <Bar dataKey="issues" name="Issues" fill="hsl(var(--secondary))" />
+                  <Bar dataKey="commits" name="Commits" fill="#6366F1" />
+                  <Bar dataKey="issues" name="Issues" fill="#10B981" />
                   <Bar dataKey="tweets" name="Tweets" fill="#1DA1F2" />
                 </BarChart>
               </ResponsiveContainer>
@@ -349,58 +423,74 @@ export default function Dashboard() {
                           key={i}
                           className="flex items-start justify-between border-b pb-4 last:border-0"
                         >
-                          <div className="flex-1 min-w-0">
-                            {activity.url ? (
-                              <a
-                                href={activity.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="font-medium text-sm text-primary hover:underline block truncate"
-                              >
-                                {activity.identifier && (
-                                  <span className="text-muted-foreground mr-1">{activity.identifier}</span>
-                                )}
-                                {activity.title || activity.message || activity.text}
-                              </a>
-                            ) : (
-                              <p className="font-medium text-sm truncate">
-                                {activity.identifier && (
-                                  <span className="text-muted-foreground mr-1">{activity.identifier}</span>
-                                )}
-                                {activity.title || activity.message || activity.text}
-                              </p>
+                          <div className="flex items-start gap-2 flex-1 min-w-0">
+                            {activity.assigneeAvatar && (
+                              <img
+                                src={activity.assigneeAvatar}
+                                alt={activity.assignee || "Assignee"}
+                                className="w-6 h-6 rounded-full shrink-0 mt-0.5"
+                                title={activity.assignee}
+                              />
                             )}
-                            <div className="flex flex-wrap items-center gap-2 mt-1">
-                              {activity.repo && (
-                                <span className="text-xs text-muted-foreground font-mono bg-muted px-1.5 py-0.5 rounded">
-                                  {activity.repo}
-                                </span>
+                            <div className="flex-1 min-w-0">
+                              {activity.url ? (
+                                <a
+                                  href={activity.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="font-medium text-sm text-primary hover:underline block truncate"
+                                >
+                                  {activity.identifier && (
+                                    <span className="text-muted-foreground mr-1">{activity.identifier}</span>
+                                  )}
+                                  {activity.title || activity.message || activity.text}
+                                </a>
+                              ) : (
+                                <p className="font-medium text-sm truncate">
+                                  {activity.identifier && (
+                                    <span className="text-muted-foreground mr-1">{activity.identifier}</span>
+                                  )}
+                                  {activity.title || activity.message || activity.text}
+                                </p>
                               )}
-                              {activity.team && (
-                                <span className="text-xs text-muted-foreground font-mono bg-muted px-1.5 py-0.5 rounded">
-                                  {activity.team}
+                              <div className="flex flex-wrap items-center gap-2 mt-1">
+                                {activity.repo && (
+                                  <span className="text-xs text-muted-foreground font-mono bg-muted px-1.5 py-0.5 rounded">
+                                    {activity.repo}
+                                  </span>
+                                )}
+                                {activity.team && (
+                                  <span className="text-xs text-muted-foreground font-mono bg-muted px-1.5 py-0.5 rounded">
+                                    {activity.team}
+                                  </span>
+                                )}
+                                {activity.project && (
+                                  <span className="text-xs text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30 px-1.5 py-0.5 rounded">
+                                    {activity.projectIcon && <span className="mr-1">{convertEmojiShortcode(activity.projectIcon)}</span>}
+                                    {activity.project}
+                                  </span>
+                                )}
+                                {activity.priority && activity.priority !== "No priority" && (
+                                  <span className="text-xs text-orange-600 dark:text-orange-400 bg-orange-100 dark:bg-orange-900/30 px-1.5 py-0.5 rounded">
+                                    {activity.priority}
+                                  </span>
+                                )}
+                                {activity.subIssueCount > 0 && (
+                                  <span className="text-xs text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-1.5 py-0.5 rounded">
+                                    {activity.subIssueCount} sub-issue{activity.subIssueCount > 1 ? "s" : ""}
+                                  </span>
+                                )}
+                                {activity.labels?.length > 0 && activity.labels.slice(0, 2).map((label: string) => (
+                                  <span key={label} className="text-xs text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/30 px-1.5 py-0.5 rounded">
+                                    {label}
+                                  </span>
+                                ))}
+                                <span className="text-xs text-muted-foreground">
+                                  {activity.timestamp
+                                    ? format(parseISO(activity.timestamp), "MMM d, h:mm a")
+                                    : ""}
                                 </span>
-                              )}
-                              {activity.project && (
-                                <span className="text-xs text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30 px-1.5 py-0.5 rounded">
-                                  {activity.project}
-                                </span>
-                              )}
-                              {activity.priority && activity.priority !== "No priority" && (
-                                <span className="text-xs text-orange-600 dark:text-orange-400 bg-orange-100 dark:bg-orange-900/30 px-1.5 py-0.5 rounded">
-                                  {activity.priority}
-                                </span>
-                              )}
-                              {activity.labels?.length > 0 && activity.labels.slice(0, 2).map((label: string) => (
-                                <span key={label} className="text-xs text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/30 px-1.5 py-0.5 rounded">
-                                  {label}
-                                </span>
-                              ))}
-                              <span className="text-xs text-muted-foreground">
-                                {activity.timestamp
-                                  ? format(parseISO(activity.timestamp), "MMM d, h:mm a")
-                                  : ""}
-                              </span>
+                              </div>
                             </div>
                           </div>
                           {activity.type && (

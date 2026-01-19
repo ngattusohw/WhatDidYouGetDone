@@ -19,28 +19,28 @@ export default function Navbar() {
                 to="/app/dashboard"
                 className="flex items-center space-x-2 text-muted-foreground hover:text-foreground"
               >
-                <Activity size={20} />
+                <Activity className="h-5 w-5" />
                 <span>Dashboard</span>
               </Link>
               <Link
                 to="/app/integrations"
                 className="flex items-center space-x-2 text-muted-foreground hover:text-foreground"
               >
-                <Plug size={20} />
+                <Plug className="h-5 w-5" />
                 <span>Integrations</span>
               </Link>
               <Link
                 to="/app/repositories"
                 className="flex items-center space-x-2 text-muted-foreground hover:text-foreground"
               >
-                <GitFork size={20} />
+                <GitFork className="h-5 w-5" />
                 <span>Repositories</span>
               </Link>
               <Link
                 to="/app/settings"
                 className="flex items-center space-x-2 text-muted-foreground hover:text-foreground"
               >
-                <Settings size={20} />
+                <Settings className="h-5 w-5" />
                 <span>Settings</span>
               </Link>
             </div>

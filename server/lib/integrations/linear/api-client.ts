@@ -168,6 +168,16 @@ export class LinearApiClient {
             project {
               id
               name
+              icon
+            }
+            projectMilestone {
+              id
+              name
+            }
+            assignee {
+              id
+              name
+              avatarUrl
             }
             labels {
               nodes {
@@ -175,6 +185,11 @@ export class LinearApiClient {
               }
             }
             estimate
+            children {
+              nodes {
+                id
+              }
+            }
             createdAt
             completedAt
             url
@@ -212,8 +227,13 @@ export class LinearApiClient {
         teamName: issue.team.name,
         projectId: issue.project?.id,
         projectName: issue.project?.name,
+        projectIcon: issue.project?.icon,
+        assigneeId: issue.assignee?.id,
+        assigneeName: issue.assignee?.name,
+        assigneeAvatarUrl: issue.assignee?.avatarUrl,
         labels: issue.labels?.nodes?.map((l: any) => l.name) || [],
         estimate: issue.estimate,
+        subIssueCount: issue.children?.nodes?.length || 0,
         createdAt: new Date(issue.createdAt),
         completedAt: issue.completedAt ? new Date(issue.completedAt) : undefined,
         url: issue.url,
@@ -258,6 +278,16 @@ export class LinearApiClient {
             project {
               id
               name
+              icon
+            }
+            projectMilestone {
+              id
+              name
+            }
+            assignee {
+              id
+              name
+              avatarUrl
             }
             labels {
               nodes {
@@ -265,6 +295,11 @@ export class LinearApiClient {
               }
             }
             estimate
+            children {
+              nodes {
+                id
+              }
+            }
             createdAt
             completedAt
             url
@@ -302,8 +337,13 @@ export class LinearApiClient {
         teamName: issue.team.name,
         projectId: issue.project?.id,
         projectName: issue.project?.name,
+        projectIcon: issue.project?.icon,
+        assigneeId: issue.assignee?.id,
+        assigneeName: issue.assignee?.name,
+        assigneeAvatarUrl: issue.assignee?.avatarUrl,
         labels: issue.labels?.nodes?.map((l: any) => l.name) || [],
         estimate: issue.estimate,
+        subIssueCount: issue.children?.nodes?.length || 0,
         createdAt: new Date(issue.createdAt),
         completedAt: issue.completedAt ? new Date(issue.completedAt) : undefined,
         url: issue.url,
