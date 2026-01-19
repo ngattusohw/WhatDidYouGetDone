@@ -1,286 +1,207 @@
-import { useUserIntegrations } from '@/hooks/useUserIntegrations';
-import { useGitHubIntegration } from '@/hooks/useGitHubIntegration';
-import { useGitHubTokenValidation } from '@/hooks/useGitHubTokenValidation';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Skeleton } from '@/components/ui/skeleton';
-import { useToast } from '@/hooks/use-toast';
-import { Github, Lock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
-import { useState } from 'react';
-import { Integration } from '@/lib/types';
+} from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Github,
+  Twitter,
+  CheckCircle,
+  AlertCircle,
+  Loader2,
+  User,
+  Bell,
+} from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/contexts/AuthContext";
+import { signOut } from "@/lib/auth-client";
 
 export default function Settings() {
-  const { data: integrations, isLoading } = useUserIntegrations();
-  const { mutate: updateToken } = useGitHubIntegration();
-  const { data: tokenValidation, isLoading: isValidating } =
-    useGitHubTokenValidation();
-
+  const { user } = useAuth();
   const { toast } = useToast();
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [newToken, setNewToken] = useState('');
 
-  const activeIntegrations = integrations?.filter((i) => i.is_active) ?? [];
-  const inactiveIntegrations = integrations?.filter((i) => !i.is_active) ?? [];
+  const { data: integrations, isLoading } = trpc.integrations.list.useQuery();
 
-  const handleUpdateToken = (integration: Integration) => {
-    if (!newToken.trim()) {
+  const disconnect = trpc.oauth.disconnect.useMutation({
+    onSuccess: () => {
+      toast({ title: "Integration disconnected" });
+    },
+    onError: (error) => {
       toast({
-        title: 'Error',
-        description: 'Please enter a valid token',
-        variant: 'destructive',
+        variant: "destructive",
+        title: "Error",
+        description: error.message,
       });
-      return;
-    }
+    },
+  });
 
-    try {
-      console.log('Updating token for', integration.id, 'with', newToken);
-
-      updateToken({ oAuthCode: newToken });
-      toast({
-        title: 'Success',
-        description: 'GitHub token saved successfully',
-      });
-    } catch (error: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: error?.message || 'Failed to save GitHub token',
-      });
-    }
-
-    // Reset states
-    setEditingId(null);
-    setNewToken('');
+  const handleDisconnect = (integrationId: string) => {
+    disconnect.mutate({ integrationId });
   };
 
-  const renderTokenStatus = () => {
-    if (isValidating) {
-      return (
-        <Badge variant="outline" className="ml-2 bg-gray-100">
-          <AlertCircle className="h-3 w-3 mr-1" />
-          Checking...
-        </Badge>
-      );
-    }
-
-    if (!tokenValidation) {
-      return null;
-    }
-
-    if (tokenValidation.isValid) {
-      return (
-        <Badge variant="outline" className="ml-2 bg-green-100 text-green-800">
-          <CheckCircle className="h-3 w-3 mr-1" />
-          Valid ({tokenValidation.username})
-        </Badge>
-      );
-    } else {
-      return (
-        <Badge variant="outline" className="ml-2 bg-red-100 text-red-800">
-          <XCircle className="h-3 w-3 mr-1" />
-          Invalid
-        </Badge>
-      );
-    }
+  const handleSignOut = async () => {
+    await signOut();
   };
 
   if (isLoading) {
-    return <IntegrationsLoadingSkeleton />;
+    return <SettingsLoadingSkeleton />;
   }
 
-  // const handleDisconnect = (id: string): void => {
-  //   activeIntegrations.filter((i) => i.id !== id);
-  //   throw new Error('Function not implemented.');
-  // };
+  const activeIntegrations = integrations?.filter((i) => i.status === "ACTIVE") ?? [];
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Settings</h1>
         <p className="text-muted-foreground mt-2">
-          Manage your integrations and account settings
+          Manage your account and integrations
         </p>
       </div>
 
-      {/* Active Integrations */}
+      {/* Account Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <User className="h-5 w-5" />
+            Account
+          </CardTitle>
+          <CardDescription>Your account information</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium">{user?.name || "User"}</p>
+              <p className="text-sm text-muted-foreground">{user?.email}</p>
+            </div>
+            <Button variant="outline" onClick={handleSignOut}>
+              Sign Out
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Integrations Section */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold">Active Integrations</h2>
-          <Badge variant="secondary">
-            {activeIntegrations.length} of 2 Free Slots Used
-          </Badge>
+          <h2 className="text-xl font-semibold">Connected Integrations</h2>
+          <Badge variant="secondary">{activeIntegrations.length} active</Badge>
         </div>
-        <div className="grid gap-4">
-          {activeIntegrations.map((integration) => (
-            <Card key={integration.id}>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <IntegrationIcon type={integration.type} />
-                    {integration.name}
-                    {integration.type === 'github' && renderTokenStatus()}
+
+        {activeIntegrations.length === 0 ? (
+          <Card>
+            <CardContent className="py-8 text-center">
+              <p className="text-muted-foreground">
+                No integrations connected yet.{" "}
+                <a href="/app/integrations" className="text-primary hover:underline">
+                  Add your first integration
+                </a>
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid gap-4">
+            {activeIntegrations.map((integration) => (
+              <Card key={integration.id}>
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <IntegrationIcon type={integration.typeSlug} />
+                      {integration.name}
+                      <Badge variant="outline" className="bg-green-100 text-green-800">
+                        <CheckCircle className="h-3 w-3 mr-1" />
+                        Connected
+                      </Badge>
+                    </div>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex justify-between items-center">
+                    <p className="text-sm text-muted-foreground">
+                      Last synced: {integration.lastFetchedAt
+                        ? new Date(integration.lastFetchedAt).toLocaleString()
+                        : "Never"}
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDisconnect(integration.id)}
+                      disabled={disconnect.isPending}
+                    >
+                      {disconnect.isPending ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        "Disconnect"
+                      )}
+                    </Button>
                   </div>
-                  <Badge
-                    variant="default"
-                    className="border-transparent bg-purple-600 text-destructive-foreground shadow"
-                  >
-                    Active
-                  </Badge>
-                </CardTitle>
-                <CardDescription>{integration.description}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {editingId === integration.id ? (
-                  <>
-                    <Input
-                      type="password"
-                      placeholder={`Enter new ${integration.name} token`}
-                      value={newToken}
-                      onChange={(e) => setNewToken(e.target.value)}
-                      autoFocus
-                    />
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          setEditingId(null);
-                          setNewToken('');
-                        }}
-                      >
-                        Cancel
-                      </Button>
-                      <Button onClick={() => handleUpdateToken(integration)}>
-                        Save Token
-                      </Button>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <Input
-                      type="password"
-                      value={integration.access_token || ''}
-                      disabled
-                    />
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          setEditingId(integration.id);
-                          setNewToken('');
-                        }}
-                      >
-                        Update Token
-                      </Button>
-                      <Button variant="destructive">Disconnect</Button>
-                    </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Available Integrations */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold">Available Integrations</h2>
-        </div>
-        <div className="grid gap-4">
-          {inactiveIntegrations.map((integration) => (
-            <Card
-              key={integration.id}
-              className={integration.is_premium ? 'opacity-75' : ''}
-            >
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <IntegrationIcon type={integration.type} />
-                    {integration.name}
-                  </div>
-                  {integration.is_premium && (
-                    <Badge variant="secondary">
-                      <Lock className="h-3 w-3 mr-1" />
-                      Premium
-                    </Badge>
-                  )}
-                </CardTitle>
-                <CardDescription>{integration.description}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {editingId === integration.id ? (
-                  <>
-                    <Input
-                      type="password"
-                      placeholder={`Enter new ${integration.name} token`}
-                      value={newToken}
-                      onChange={(e) => setNewToken(e.target.value)}
-                      autoFocus
-                    />
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          setEditingId(null);
-                          setNewToken('');
-                        }}
-                      >
-                        Cancel
-                      </Button>
-                      <Button onClick={() => handleUpdateToken(integration)}>
-                        Save Token
-                      </Button>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <CardContent className="p-0">
-                      <Button
-                        className="w-full"
-                        disabled={integration.is_premium}
-                        onClick={() => setEditingId(integration.id)}
-                      >
-                        {integration.is_premium
-                          ? 'Upgrade to Enable'
-                          : 'Connect'}
-                      </Button>
-                    </CardContent>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
+      {/* Notifications Section (placeholder) */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Bell className="h-5 w-5" />
+            Notifications
+          </CardTitle>
+          <CardDescription>Configure how you receive updates</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <Label htmlFor="weekly-summary">Weekly Summary Email</Label>
+              <p className="text-sm text-muted-foreground">
+                Receive a summary of your week every Monday
+              </p>
+            </div>
+            <Switch id="weekly-summary" disabled />
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Email notifications coming soon
+          </p>
+        </CardContent>
+      </Card>
     </div>
   );
 }
 
 function IntegrationIcon({ type }: { type: string }) {
   switch (type) {
-    case 'github':
+    case "github":
       return <Github className="h-5 w-5" />;
-    // Add other integration icons here
+    case "twitter":
+      return <Twitter className="h-5 w-5" />;
+    case "linear":
+      return (
+        <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M3.357 2.612a.5.5 0 0 0-.732.542l1.537 7.686a.5.5 0 0 0 .39.39l7.686 1.537a.5.5 0 0 0 .542-.732L3.357 2.612z" />
+          <path d="M20.643 21.388a.5.5 0 0 0 .732-.542l-1.537-7.686a.5.5 0 0 0-.39-.39l-7.686-1.537a.5.5 0 0 0-.542.732l9.423 9.423z" />
+        </svg>
+      );
     default:
-      return null;
+      return <AlertCircle className="h-5 w-5" />;
   }
 }
 
-function IntegrationsLoadingSkeleton() {
+function SettingsLoadingSkeleton() {
   return (
     <div className="space-y-6">
       <Skeleton className="h-8 w-[200px]" />
       <div className="space-y-4">
         {[1, 2, 3].map((i) => (
-          <Skeleton key={i} className="h-[200px] w-full" />
+          <Skeleton key={i} className="h-[150px] w-full" />
         ))}
       </div>
     </div>

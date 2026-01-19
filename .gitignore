@@ -33,3 +33,7 @@ dist-ssr
 # Optional npm cache directory
 .npm
 *.sw?
+
+# Generated files
+src/generated/
+*.tsbuildinfo

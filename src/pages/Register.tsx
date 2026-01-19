@@ -1,10 +1,10 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Loader2, Github } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -12,10 +12,11 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { toast } from 'sonner';
-import { supabase } from '@/lib/supabase';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { toast } from "sonner";
+import { signUp, signInWithGitHub } from "@/lib/auth-client";
 
 const formSchema = z.object({
   email: z.string().email(),
@@ -25,38 +26,45 @@ const formSchema = z.object({
 
 export default function Register() {
   const [isLoading, setIsLoading] = useState(false);
+  const [isGitHubLoading, setIsGitHubLoading] = useState(false);
   const navigate = useNavigate();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: '',
-      password: '',
-      fullName: '',
+      email: "",
+      password: "",
+      fullName: "",
     },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       setIsLoading(true);
-      const { error } = await supabase.auth.signUp({
+      const { error } = await signUp.email({
         email: values.email,
         password: values.password,
-        options: {
-          data: {
-            full_name: values.fullName,
-          },
-        },
+        name: values.fullName,
       });
-      
-      if (error) throw error;
-      
-      toast.success('Account created successfully!');
-      navigate('/dashboard');
-    } catch (error) {
-      toast.error('Failed to create account. Please try again.');
+
+      if (error) throw new Error(error.message);
+
+      toast.success("Account created successfully!");
+      navigate("/app/dashboard");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to create account. Please try again.");
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  async function handleGitHubLogin() {
+    try {
+      setIsGitHubLoading(true);
+      await signInWithGitHub();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to sign up with GitHub.");
+      setIsGitHubLoading(false);
     }
   }
 
@@ -68,6 +76,31 @@ export default function Register() {
           <p className="text-muted-foreground mt-2">
             Get started with tracking your productivity
           </p>
+        </div>
+
+        <Button
+          variant="outline"
+          className="w-full"
+          onClick={handleGitHubLogin}
+          disabled={isGitHubLoading}
+        >
+          {isGitHubLoading ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Github className="mr-2 h-4 w-4" />
+          )}
+          Continue with GitHub
+        </Button>
+
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <Separator className="w-full" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-background px-2 text-muted-foreground">
+              Or continue with email
+            </span>
+          </div>
         </div>
 
         <Form {...form}>
@@ -119,7 +152,7 @@ export default function Register() {
         </Form>
 
         <p className="text-center text-sm text-muted-foreground">
-          Already have an account?{' '}
+          Already have an account?{" "}
           <Link to="/login" className="text-primary hover:underline">
             Sign in
           </Link>

@@ -1,8 +1,7 @@
 import { Link } from 'react-router-dom';
-import { Activity, Settings, Users } from 'lucide-react';
+import { Activity, Settings, Plug, GitFork } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-// import ThemeToggle from '@/components/ThemeToggle';
 
 export default function Navbar() {
   const { signOut } = useAuth();
@@ -24,11 +23,18 @@ export default function Navbar() {
                 <span>Dashboard</span>
               </Link>
               <Link
-                to="/app/teams"
+                to="/app/integrations"
                 className="flex items-center space-x-2 text-muted-foreground hover:text-foreground"
               >
-                <Users size={20} />
-                <span>Teams</span>
+                <Plug size={20} />
+                <span>Integrations</span>
+              </Link>
+              <Link
+                to="/app/repositories"
+                className="flex items-center space-x-2 text-muted-foreground hover:text-foreground"
+              >
+                <GitFork size={20} />
+                <span>Repositories</span>
               </Link>
               <Link
                 to="/app/settings"

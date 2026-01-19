@@ -1,0 +1,259 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// Authentication (better-auth compatible)
+// ============================================
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  name          String?
+  emailVerified Boolean  @default(false) @map("email_verified")
+  image         String?
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  sessions     Session[]
+  accounts     Account[]
+  integrations Integration[]
+  summaries    WeeklySummary[]
+  repositories Repository[]
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String   @map("user_id")
+  expiresAt DateTime @map("expires_at")
+  ipAddress String?  @map("ip_address")
+  userAgent String?  @map("user_agent")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  userId                String    @map("user_id")
+  accountId             String    @map("account_id")
+  providerId            String    @map("provider_id")
+  accessToken           String?   @map("access_token")
+  refreshToken          String?   @map("refresh_token")
+  idToken               String?   @map("id_token")
+  accessTokenExpiresAt  DateTime? @map("access_token_expires_at")
+  refreshTokenExpiresAt DateTime? @map("refresh_token_expires_at")
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, accountId])
+  @@map("accounts")
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime @map("expires_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@unique([identifier, value])
+  @@map("verifications")
+}
+
+// ============================================
+// Integrations
+// ============================================
+
+enum IntegrationCategory {
+  DEVELOPMENT
+  SOCIAL
+  COMMUNICATION
+  PRODUCTIVITY
+  CUSTOM
+
+  @@map("integration_categories")
+}
+
+enum IntegrationStatus {
+  ACTIVE
+  PAUSED
+  ERROR
+  PENDING_AUTH
+
+  @@map("integration_statuses")
+}
+
+enum OwnerType {
+  USER
+  ORGANIZATION
+
+  @@map("owner_types")
+}
+
+// ============================================
+// Repository Detection
+// ============================================
+
+model Repository {
+  id              String    @id @default(cuid())
+  userId          String    @map("user_id")
+
+  // Identity
+  fullName        String    @map("full_name") // "owner/repo" e.g., "withlink/mono"
+  owner           String // "withlink" or "ngattusohw"
+  name            String // "mono"
+  ownerType       OwnerType @default(USER) @map("owner_type")
+
+  // GitHub metadata (cached)
+  description     String?
+  language        String?
+  isPrivate       Boolean   @default(false) @map("is_private")
+  htmlUrl         String?   @map("html_url")
+
+  // Activity metrics (computed/updated periodically)
+  totalCommits        Int @default(0) @map("total_commits")
+  totalPRs            Int @default(0) @map("total_prs")
+  totalIssues         Int @default(0) @map("total_issues")
+  firstActivityAt     DateTime? @map("first_activity_at")
+  lastActivityAt      DateTime? @map("last_activity_at")
+  weeklyActivityCount Int @default(0) @map("weekly_activity_count") // Weeks with activity
+
+  // Status
+  isActive  Boolean @default(true) @map("is_active") // User still has access
+  isPrimary Boolean @default(false) @map("is_primary") // User-marked as primary
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  metricData MetricData[]
+
+  @@unique([userId, fullName])
+  @@index([userId, lastActivityAt(sort: Desc)])
+  @@index([userId, ownerType])
+  @@index([userId, isPrimary])
+  @@map("repositories")
+}
+
+model Integration {
+  id                  String            @id @default(cuid())
+  userId              String            @map("user_id")
+  name                String
+  typeSlug            String            @map("type_slug") // "github", "linear", "twitter"
+  config              Json              @default("{}")
+  status              IntegrationStatus @default(ACTIVE)
+  frequency           Int               @default(300) // seconds between fetches
+  cronPattern         String?           @map("cron_pattern")
+  lastFetchedAt       DateTime?         @map("last_fetched_at")
+  lastError           String?           @map("last_error")
+  lastErrorAt         DateTime?         @map("last_error_at")
+  consecutiveFailures Int               @default(0) @map("consecutive_failures")
+  createdAt           DateTime          @default(now()) @map("created_at")
+  updatedAt           DateTime          @updatedAt @map("updated_at")
+
+  user        User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  credentials OAuthCredential?
+  metricData  MetricData[]
+  syncState   IntegrationSyncState?
+
+  @@index([userId])
+  @@index([typeSlug])
+  @@index([status])
+  @@map("integrations")
+}
+
+model OAuthCredential {
+  id            String    @id @default(cuid())
+  integrationId String    @unique @map("integration_id")
+  provider      String // "github", "linear", "twitter"
+  accessToken   String    @map("access_token") // Encrypted
+  refreshToken  String?   @map("refresh_token")
+  expiresAt     DateTime? @map("expires_at")
+  scope         String?
+  tokenData     Json?     @map("token_data") // Provider-specific data
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  integration Integration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+
+  @@map("oauth_credentials")
+}
+
+model MetricData {
+  id            String   @id @default(cuid())
+  integrationId String   @map("integration_id")
+  repositoryId  String?  @map("repository_id") // Link to detected repository
+  metricKey     String   @map("metric_key") // "commits", "issues_closed", "tweets"
+  value         Json // Flexible - can store any metric value
+  timestamp     DateTime
+  metadata      Json? // Additional context
+
+  integration Integration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  repository  Repository? @relation(fields: [repositoryId], references: [id], onDelete: SetNull)
+
+  @@index([integrationId, metricKey, timestamp(sort: Desc)])
+  @@index([integrationId, timestamp(sort: Desc)])
+  @@index([repositoryId, timestamp(sort: Desc)])
+  @@index([timestamp(sort: Desc)])
+  @@map("metric_data")
+}
+
+model IntegrationSyncState {
+  id            String   @id @default(cuid())
+  integrationId String   @unique @map("integration_id")
+  state         Json // Plugin-specific state (lastSyncDate, cursor, etc.)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  integration Integration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+
+  @@map("integration_sync_states")
+}
+
+// ============================================
+// Weekly Summaries
+// ============================================
+
+enum SummaryTemplate {
+  EXECUTIVE // High-level accomplishments
+  DETAILED // Comprehensive breakdown
+  INSIGHTS // Patterns and suggestions
+  SHAREABLE // For managers/stakeholders
+
+  @@map("summary_templates")
+}
+
+model WeeklySummary {
+  id        String          @id @default(cuid())
+  userId    String          @map("user_id")
+  weekStart DateTime        @map("week_start")
+  template  SummaryTemplate
+  content   String // Generated summary text (markdown)
+  context   Json // Raw data used for generation
+  createdAt DateTime        @default(now()) @map("created_at")
+  updatedAt DateTime        @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, weekStart, template])
+  @@index([userId, weekStart])
+  @@map("weekly_summaries")
+}
